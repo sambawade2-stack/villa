@@ -1,0 +1,855 @@
+<title>Architecture Petite Côte Villas</title>
+<style>
+  :root{
+    --ground:#FAF8F3;
+    --surface:#FFFFFF;
+    --surface-2:#F3EFE5;
+    --line:#DDD6C6;
+    --line-soft:#EAE4D7;
+    --ink:#10233C;
+    --ink-2:#2A4462;
+    --muted:#6C7B8D;
+    --gold:#9C6E33;
+    --gold-soft:#C9A15E;
+    --ok:#2F7A55;      --ok-bg:#E3F0E9;
+    --warn:#8C5F12;    --warn-bg:#F6EBD4;
+    --crit:#9B372F;    --crit-bg:#F6E2DF;
+    --code-bg:#11233A; --code-ink:#DAE4F0; --code-dim:#7C92AC; --code-gold:#D9AE6B;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#0B1624;
+      --surface:#111F31;
+      --surface-2:#16273C;
+      --line:#253A52;
+      --line-soft:#1B2D43;
+      --ink:#E6ECF3;
+      --ink-2:#B9C8DA;
+      --muted:#8B9CB0;
+      --gold:#C99A5B;
+      --gold-soft:#8C6535;
+      --ok:#67C295;      --ok-bg:#123020;
+      --warn:#D6A44A;    --warn-bg:#332510;
+      --crit:#E28479;    --crit-bg:#361B18;
+      --code-bg:#060F1A; --code-ink:#DAE4F0; --code-dim:#6D829B; --code-gold:#D9AE6B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0B1624;
+    --surface:#111F31;
+    --surface-2:#16273C;
+    --line:#253A52;
+    --line-soft:#1B2D43;
+    --ink:#E6ECF3;
+    --ink-2:#B9C8DA;
+    --muted:#8B9CB0;
+    --gold:#C99A5B;
+    --gold-soft:#8C6535;
+    --ok:#67C295;      --ok-bg:#123020;
+    --warn:#D6A44A;    --warn-bg:#332510;
+    --crit:#E28479;    --crit-bg:#361B18;
+    --code-bg:#060F1A; --code-ink:#DAE4F0; --code-dim:#6D829B; --code-gold:#D9AE6B;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    border-bottom:1px solid var(--line);
+    background:var(--surface-2);
+    padding:44px 28px 34px;
+  }
+  .masthead-inner{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0;
+  }
+  .masthead h1{
+    margin:0;
+    font-size:clamp(30px,4.4vw,46px);
+    line-height:1.08;
+    letter-spacing:-.02em;
+    font-weight:700;
+    text-wrap:balance;
+    max-width:20ch;
+  }
+  .standfirst{margin:0;max-width:62ch;color:var(--ink-2);font-size:17px}
+  .stamp{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 18px;
+    padding-top:6px;
+    border-top:1px solid var(--line);
+    margin-top:6px;
+  }
+
+  /* ---------- shell ---------- */
+  .shell{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px 96px;
+    display:grid;
+    grid-template-columns:212px minmax(0,1fr);
+    gap:56px;
+    align-items:start;
+  }
+  .rail{
+    position:sticky;
+    top:28px;
+    padding-top:44px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  .rail-title{
+    color:var(--muted);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-size:10px;
+    padding:0 0 10px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:8px;
+  }
+  .rail a{
+    color:var(--ink-2);
+    text-decoration:none;
+    padding:4px 0;
+    display:flex;
+    gap:9px;
+    border-radius:3px;
+  }
+  .rail a:hover{color:var(--gold)}
+  .rail a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .rail a span{color:var(--muted);flex:none;width:1.4em}
+
+  main{min-width:0;padding-top:44px;display:flex;flex-direction:column;gap:60px}
+  section{display:flex;flex-direction:column;gap:18px;scroll-margin-top:24px}
+  .sec-head{display:flex;flex-direction:column;gap:6px;border-top:2px solid var(--ink);padding-top:14px}
+  .sec-num{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--gold)}
+  h2{margin:0;font-size:clamp(22px,2.6vw,28px);line-height:1.2;letter-spacing:-.015em;font-weight:700;text-wrap:balance}
+  h3{margin:22px 0 0;font-size:16px;font-weight:700;letter-spacing:-.005em}
+  h4{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  p{margin:0;max-width:70ch}
+  section > p, section > ul, section > ol{max-width:70ch}
+  ul,ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+  li::marker{color:var(--gold-soft)}
+  strong{font-weight:650;color:var(--ink)}
+  a{color:var(--gold)}
+  em{color:var(--ink-2)}
+
+  /* ---------- chips / callouts ---------- */
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap;
+  }
+  .chip.ok{background:var(--ok-bg);color:var(--ok)}
+  .chip.warn{background:var(--warn-bg);color:var(--warn)}
+  .chip.crit{background:var(--crit-bg);color:var(--crit)}
+  .chip.neutral{background:var(--surface-2);color:var(--muted)}
+
+  .note{
+    border-left:3px solid var(--gold);
+    background:var(--surface);
+    border-top:1px solid var(--line-soft);
+    border-right:1px solid var(--line-soft);
+    border-bottom:1px solid var(--line-soft);
+    padding:16px 18px;
+    display:flex;flex-direction:column;gap:8px;
+    border-radius:0 4px 4px 0;
+  }
+  .note.stop{border-left-color:var(--crit)}
+  .note p{max-width:66ch}
+
+  /* ---------- tables ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+  th{
+    text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--muted);font-weight:600;
+    padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);
+    white-space:nowrap;
+  }
+  td{padding:10px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono,th.mono{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+  td.tight{white-space:nowrap}
+
+  /* ---------- code ---------- */
+  pre{
+    margin:0;background:var(--code-bg);color:var(--code-ink);
+    font-family:var(--mono);font-size:12.5px;line-height:1.6;
+    padding:16px 18px;border-radius:4px;overflow-x:auto;
+  }
+  pre b{color:var(--code-gold);font-weight:600}
+  pre i{color:var(--code-dim);font-style:normal}
+  code{
+    font-family:var(--mono);font-size:.88em;
+    background:var(--surface-2);color:var(--ink-2);
+    padding:1px 5px;border-radius:3px;
+  }
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+
+  /* ---------- flow ---------- */
+  .flow{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:4px;background:var(--surface);overflow:hidden}
+  .step{display:grid;grid-template-columns:52px minmax(0,1fr);border-bottom:1px solid var(--line-soft)}
+  .step:last-child{border-bottom:none}
+  .step-n{
+    font-family:var(--mono);font-size:12px;color:var(--gold);
+    background:var(--surface-2);border-right:1px solid var(--line-soft);
+    display:flex;align-items:flex-start;justify-content:center;padding:14px 0;
+    font-variant-numeric:tabular-nums;
+  }
+  .step-body{padding:13px 16px;display:flex;flex-direction:column;gap:5px}
+  .step-body strong{font-size:14.5px}
+  .step-body p{font-size:13.5px;color:var(--ink-2);max-width:64ch}
+  .guard{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .guard b{color:var(--crit);font-weight:600}
+
+  /* ---------- cards ---------- */
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  .card{
+    border:1px solid var(--line);background:var(--surface);
+    border-radius:4px;padding:15px 17px;display:flex;flex-direction:column;gap:7px;
+  }
+  .card p{font-size:13.5px;color:var(--ink-2);max-width:none}
+  .card ul{font-size:13.5px;color:var(--ink-2)}
+
+  .kv{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+  .kv-row{display:grid;grid-template-columns:180px minmax(0,1fr);gap:0;border-bottom:1px solid var(--line-soft);font-size:13.5px}
+  .kv-row:last-child{border-bottom:none}
+  .kv-row dt{font-family:var(--mono);font-size:12px;color:var(--ink-2);padding:10px 14px;background:var(--surface-2);border-right:1px solid var(--line-soft)}
+  .kv-row dd{margin:0;padding:10px 14px;color:var(--ink-2)}
+  dl{margin:0}
+
+  hr{border:none;border-top:1px solid var(--line);margin:0}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:minmax(0,1fr);gap:0;padding:0 20px 72px}
+    .rail{display:none}
+    .masthead{padding:34px 20px 28px}
+    .kv-row{grid-template-columns:minmax(0,1fr)}
+    .kv-row dt{border-right:none;border-bottom:1px solid var(--line-soft)}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Petite Côte Villas · Étape 1 — Analyse</p>
+    <h1>Architecture &amp; plan de construction</h1>
+    <p class="standfirst">Marketplace de villas haut de gamme sur la Petite Côte sénégalaise. Administration centralisée par une seule personne, propriétaires gérés comme contacts internes, architecture ouverte sur un portail propriétaire en v2.</p>
+    <div class="stamp">
+      <span>20 août 2026</span>
+      <span>Laravel 13.26 · PHP 8.3</span>
+      <span>PostgreSQL 16 · Redis 7</span>
+      <span>Livewire 4 · Tailwind · Alpine</span>
+      <span>Devise XOF (FCFA)</span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Sommaire">
+    <div class="rail-title">Sommaire</div>
+    <a href="#env"><span>00</span>Environnement</a>
+    <a href="#archi"><span>01</span>Architecture</a>
+    <a href="#tree"><span>02</span>Arborescence</a>
+    <a href="#data"><span>03</span>Modèle de données</a>
+    <a href="#rel"><span>04</span>Relations</a>
+    <a href="#roles"><span>05</span>Rôles</a>
+    <a href="#booking"><span>06</span>Réservation</a>
+    <a href="#pay"><span>07</span>Paiement</a>
+    <a href="#media"><span>08</span>Images</a>
+    <a href="#pkg"><span>09</span>Packages</a>
+    <a href="#plan"><span>10</span>Plan</a>
+  </nav>
+
+  <main>
+
+    <!-- 00 -->
+    <section id="env">
+      <div class="sec-head">
+        <div class="sec-num">00 — CONSTAT</div>
+        <h2>État réel de l'environnement</h2>
+      </div>
+      <p>Le dossier <code>/home/killer-ghost/Bureau/villa</code> est <strong>entièrement vide</strong> — aucun code existant à reprendre, pas de dépôt Git initialisé. Tout est vérifié par exécution, rien n'est supposé.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Composant</th><th class="mono">Détecté</th><th>État</th><th>Conséquence</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PHP CLI</td><td class="mono">8.3.6</td><td><span class="chip ok">OK</span></td><td>Laravel 13 exige <code>^8.3</code></td></tr>
+            <tr><td>Composer</td><td class="mono">2.9.5</td><td><span class="chip ok">OK</span></td><td>Packagist joignable (HTTP 200)</td></tr>
+            <tr><td>Node / npm</td><td class="mono">24.13.0 / 11.6.2</td><td><span class="chip ok">OK</span></td><td>Vite 7 + Tailwind 4</td></tr>
+            <tr><td>Git</td><td class="mono">2.43.0</td><td><span class="chip ok">OK</span></td><td>Dépôt à initialiser</td></tr>
+            <tr><td>PostgreSQL</td><td class="mono">16.14 · 127.0.0.1:5432</td><td><span class="chip warn">Actif, accès à créer</span></td><td>Aucun rôle/mot de passe connu</td></tr>
+            <tr><td>Redis</td><td class="mono">7.0.15 · 127.0.0.1:6379</td><td><span class="chip ok">PONG</span></td><td>Cache, sessions, queues</td></tr>
+            <tr><td>Docker</td><td class="mono">29.7.2</td><td><span class="chip ok">Sans sudo</span></td><td>Plan B pour la base</td></tr>
+            <tr><td>ext <code>pdo_pgsql</code></td><td class="mono">—</td><td><span class="chip crit">Manquant</span></td><td><strong>Bloquant :</strong> pas de connexion PostgreSQL</td></tr>
+            <tr><td>ext <code>bcmath</code></td><td class="mono">—</td><td><span class="chip warn">Manquant</span></td><td>Recommandé (arithmétique sûre)</td></tr>
+            <tr><td>ext <code>redis</code></td><td class="mono">—</td><td><span class="chip warn">Manquant</span></td><td>Contourné par <code>predis/predis</code></td></tr>
+            <tr><td>ext <code>imagick</code></td><td class="mono">—</td><td><span class="chip neutral">Manquant</span></td><td>Sans effet : <code>gd</code> suffit</td></tr>
+            <tr><td>ext gd · intl · mbstring · zip · exif · sodium · curl</td><td class="mono">présentes</td><td><span class="chip ok">OK</span></td><td>Miniatures, i18n, uploads</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note stop">
+        <h4>Deux actions vous appartiennent — <code>sudo</code> exige un mot de passe et cette session n'est pas interactive</h4>
+        <p>Sans <code>pdo_pgsql</code>, aucune migration ne peut tourner. Il n'existe pas de contournement : même une base PostgreSQL en Docker se connecte via ce pilote.</p>
+        <pre><i># 1. pilotes PHP</i>
+sudo apt install -y php8.3-pgsql php8.3-bcmath php8.3-redis
+
+<i># 2. base + rôle + extension requise par la contrainte anti-double-réservation</i>
+sudo -u postgres psql -c "CREATE ROLE villa LOGIN PASSWORD '<b>votre_mot_de_passe</b>';"
+sudo -u postgres psql -c "CREATE DATABASE petite_cote_villas OWNER villa;"
+sudo -u postgres psql -d petite_cote_villas -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"</pre>
+        <p><code>btree_gist</code> n'est pas optionnel : c'est lui qui permet la contrainte d'exclusion PostgreSQL décrite en <a href="#booking">§06</a>, qui rend la double réservation <em>physiquement</em> impossible.</p>
+      </div>
+    </section>
+
+    <!-- 01 -->
+    <section id="archi">
+      <div class="sec-head">
+        <div class="sec-num">01</div>
+        <h2>Architecture globale</h2>
+      </div>
+      <p>Monolithe Laravel modulaire. Pas de SPA, pas d'API séparée : le rendu Blade côté serveur est le meilleur choix pour le SEO touristique et pour des connexions mobiles sénégalaises souvent lentes. Livewire n'intervient que là où l'interactivité le justifie réellement.</p>
+
+      <pre>┌─ NAVIGATEUR ─────────────────────────────────────────────────┐
+│  Blade SSR  ·  Alpine.js (UI locale)  ·  Livewire (îlots)     │
+└───────────────────────────────┬──────────────────────────────┘
+                                │ HTTP
+┌─ LARAVEL 13 ──────────────────┴──────────────────────────────┐
+│  <b>Routes</b>       web.php · admin.php · auth.php               │
+│  <b>Http</b>          Controllers · FormRequests · Middleware     │
+│  <b>Livewire</b>      SearchFilters · Calendar · ImageUploader    │
+│  <b>Policies</b>      qui a le droit de faire quoi               │
+│  ─────────────────────────────────────────────────────────    │
+│  <b>Services</b>      AvailabilityService                         │
+│                PricingService                              │
+│                BookingService      ← transactions          │
+│                CommissionService                           │
+│                PaymentManager      ← interface gateways    │
+│  <b>Actions</b>       une intention métier = une classe           │
+│  <b>Enums</b>         BookingStatus · PropertyStatus · UserRole   │
+│  ─────────────────────────────────────────────────────────    │
+│  <b>Models</b>        Eloquent, relations, scopes, casts          │
+└───┬───────────────┬───────────────┬───────────────┬──────────┘
+    │               │               │               │
+┌───┴────────┐ ┌────┴─────┐ ┌───────┴──────┐ ┌──────┴────────┐
+│ PostgreSQL │ │  Redis   │ │   Storage    │ │  Queue Redis  │
+│ daterange  │ │  cache   │ │ local → R2   │ │ images · mail │
+│ EXCLUDE    │ │ sessions │ │              │ │ expirations   │
+│ jsonb i18n │ │          │ │              │ │               │
+└────────────┘ └──────────┘ └──────────────┘ └───────────────┘</pre>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Où Livewire, où Alpine</h4>
+          <p><strong>Livewire</strong> — filtres de recherche, calendrier de disponibilité, uploader d'images, wizard villa, messagerie. État serveur nécessaire.</p>
+          <p><strong>Alpine seul</strong> — menus, modales, galerie, onglets, drag &amp; drop, favoris optimistes. Aucun aller-retour serveur.</p>
+        </div>
+        <div class="card">
+          <h4>Trois règles non négociables</h4>
+          <ul>
+            <li>Aucun prix ne vient du navigateur : tout est recalculé serveur.</li>
+            <li>Aucune logique métier dans les vues Blade.</li>
+            <li>La disponibilité est arbitrée par la base, pas par PHP.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="tree">
+      <div class="sec-head">
+        <div class="sec-num">02</div>
+        <h2>Arborescence proposée</h2>
+      </div>
+      <p>Structure Laravel standard, enrichie de quatre dossiers qui portent le métier — <code>Services</code>, <code>Actions</code>, <code>Enums</code>, <code>Support</code>. Rien d'exotique : un développeur Laravel s'y retrouve immédiatement.</p>
+
+      <pre>app/
+├── Actions/
+│   ├── Booking/{CreateBooking, CancelBooking, CompleteBooking}.php
+│   ├── Property/{PublishProperty, ReorderImages}.php
+│   └── Review/PublishReview.php
+├── Enums/
+│   ├── BookingStatus.php      <i>pending confirmed cancelled completed refunded</i>
+│   ├── PaymentStatus.php      <i>pending processing succeeded failed refunded</i>
+│   ├── PropertyStatus.php     <i>draft published unpublished suspended</i>
+│   ├── BlockReason.php        <i>booking manual maintenance</i>
+│   └── UserRole.php           <i>admin customer</i>
+├── Http/
+│   ├── Controllers/
+│   │   ├── Public/    HomeController · PropertyController · DestinationController
+│   │   ├── Customer/  DashboardController · BookingController · FavoriteController
+│   │   ├── Admin/     DashboardController · PropertyController · PropertyOwnerController
+│   │   │              BookingController · AmenityController · SettingController
+│   │   └── Webhooks/  PaymentWebhookController
+│   ├── Requests/      <i>une FormRequest par écriture, sans exception</i>
+│   └── Middleware/    EnsureUserIsAdmin · SetLocale
+├── Livewire/
+│   ├── Search/{FilterPanel, ResultsGrid}.php
+│   ├── Property/{AvailabilityCalendar, ImageUploader, Wizard}.php
+│   └── Booking/{QuotePanel}.php
+├── Jobs/              GenerateImageConversions · ExpirePendingBookings
+├── Models/            User · PropertyOwner · Property · PropertyImage · Amenity
+│                      Destination · AvailabilityBlock · PricingRule · Booking
+│                      Payment · Commission · Review · Favorite · Conversation …
+├── Notifications/     BookingCreated · BookingConfirmed · PaymentSucceeded …
+├── Policies/          PropertyPolicy · BookingPolicy · ReviewPolicy
+├── Services/
+│   ├── Availability/AvailabilityService.php
+│   ├── Pricing/{PricingService, Quote.php}
+│   ├── Booking/BookingService.php
+│   ├── Commission/CommissionService.php
+│   ├── Media/ImageService.php
+│   └── Payment/
+│       ├── Contracts/PaymentGateway.php
+│       ├── PaymentManager.php
+│       ├── DTO/{GatewayRedirect, GatewayEvent, GatewayStatus}.php
+│       └── Gateways/{PayDunyaGateway, PayTechGateway, StripeGateway,
+│                     ManualTransferGateway}.php
+└── Support/
+    ├── Money.php              <i>value object entier XOF</i>
+    └── DateRange.php
+
+resources/
+├── views/
+│   ├── components/            <i>~20 composants Blade (§29 du cahier)</i>
+│   ├── layouts/{public, customer, admin}.blade.php
+│   ├── public/ customer/ admin/
+│   └── emails/
+├── lang/{fr,en}/
+├── css/app.css                <i>Tailwind 4, tokens en @theme</i>
+└── js/app.js
+
+database/{migrations,factories,seeders}
+tests/{Feature,Unit}
+docs/ARCHITECTURE.md           <i>ce document, versionné avec le code</i></pre>
+    </section>
+
+    <!-- 03 -->
+    <section id="data">
+      <div class="sec-head">
+        <div class="sec-num">03</div>
+        <h2>Modèle de données</h2>
+      </div>
+
+      <div class="note">
+        <h4>Décision structurante — la monnaie</h4>
+        <p>Le franc CFA (<strong>XOF</strong>) est une devise <strong>sans sous-unité</strong> : il n'existe pas de centime. Tous les montants sont donc stockés en <code>bigint</code>, en francs entiers, et manipulés via un value object <code>Money</code>. Aucun <code>float</code>, aucun <code>decimal</code>, aucune division non arrondie explicitement. Le taux de commission, lui, est un <code>numeric(5,2)</code>.</p>
+      </div>
+
+      <h3>Tables du cœur métier</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Table</th><th>Colonnes déterminantes</th><th>Contraintes</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono tight">users</td>
+              <td>first_name, last_name, email, phone, password, <code>role</code> (enum), locale, avatar_path</td>
+              <td>unique(email) · softDeletes</td>
+            </tr>
+            <tr>
+              <td class="mono tight">property_owners</td>
+              <td><code>user_id</code> <em>nullable</em>, first_name, last_name, phone, whatsapp, email, city, internal_address, internal_notes, status</td>
+              <td>FK user_id → users <strong>(réservé v2, null en v1)</strong> · softDeletes</td>
+            </tr>
+            <tr>
+              <td class="mono tight">destinations</td>
+              <td>name <code>jsonb</code>, slug, region, description <code>jsonb</code>, hero_image_path, lat, lng, position, is_active</td>
+              <td>unique(slug) · index(is_active, position)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">properties</td>
+              <td>property_owner_id, destination_id, name, slug, description <code>jsonb</code>, type, <code>status</code>, is_verified, capacity, bedrooms, beds, bathrooms, neighborhood, zone, lat, lng, <code>approx_lat/lng</code>, internal_address, base_price, weekend_price, weekly_price, high/low_season_price, cleaning_fee, security_deposit, extra_fees <code>jsonb</code>, checkin/checkout_time, rules <code>jsonb</code>, rating_avg, reviews_count, published_at, meta_title, meta_description</td>
+              <td>unique(slug) · index(status, destination_id) · index(base_price) · softDeletes</td>
+            </tr>
+            <tr>
+              <td class="mono tight">property_images</td>
+              <td>property_id, path, disk, position, is_primary, alt <code>jsonb</code>, width, height, size, conversions <code>jsonb</code></td>
+              <td>index unique partiel (property_id) WHERE is_primary</td>
+            </tr>
+            <tr>
+              <td class="mono tight">amenities<br>property_amenity</td>
+              <td>name <code>jsonb</code>, slug, icon, category, position, is_active — pivot (property_id, amenity_id)</td>
+              <td>PK composite sur le pivot</td>
+            </tr>
+            <tr>
+              <td class="mono tight">availability_blocks</td>
+              <td>property_id, <code>period daterange</code>, reason (booking|manual|maintenance), booking_id <em>nullable</em>, note</td>
+              <td><strong>EXCLUDE USING gist (property_id WITH =, period WITH &amp;&amp;)</strong> · index gist(period)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">pricing_rules</td>
+              <td>property_id, label, <code>period daterange</code>, price_per_night, min_nights, priority</td>
+              <td>index gist(period) · tri par priority</td>
+            </tr>
+            <tr>
+              <td class="mono tight">bookings</td>
+              <td>reference, property_id, user_id, <code>period daterange</code>, checkin_date, checkout_date, nights, guests_count, <code>status</code>, nightly_subtotal, cleaning_fee, service_fee, discount_total, <strong>total_amount</strong>, currency, commission_rate, commission_amount, owner_payout_amount, confirmed_at, cancelled_at, completed_at</td>
+              <td>unique(reference) · index(status, checkin_date) · index(user_id)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">payments<br>payment_transactions<br>refunds</td>
+              <td>booking_id, gateway, <code>status</code>, amount, provider_reference, payload <code>jsonb</code>, paid_at — transactions : type, provider_event_id, raw_payload</td>
+              <td><strong>unique(gateway, provider_event_id)</strong> → idempotence webhook</td>
+            </tr>
+            <tr>
+              <td class="mono tight">commissions</td>
+              <td>booking_id, rate, base_amount, commission_amount, owner_payout_amount, status (pending|settled), settled_at</td>
+              <td>unique(booking_id)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">reviews</td>
+              <td>booking_id, property_id, user_id, cleanliness, location, communication, amenities, value_for_money, overall, comment, status, published_at</td>
+              <td><strong>unique(booking_id)</strong> → un avis par séjour</td>
+            </tr>
+            <tr>
+              <td class="mono tight">favorites</td>
+              <td>user_id, property_id</td>
+              <td>unique(user_id, property_id)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">conversations<br>messages</td>
+              <td>user_id (client), property_id <em>nullable</em>, booking_id <em>nullable</em>, status, last_message_at — messages : sender_id, body, read_at</td>
+              <td>index(last_message_at)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">promotions<br>promotion_usages</td>
+              <td>code, type (percentage|fixed), value, starts_at, ends_at, max_uses, uses_count, min_nights, portée destination/villa</td>
+              <td>unique(code) · unique(promotion_id, booking_id)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">settings</td>
+              <td>key, value <code>jsonb</code>, group — taux de commission, frais de service, délai d'expiration…</td>
+              <td>unique(key) · mis en cache Redis</td>
+            </tr>
+            <tr>
+              <td class="mono tight">audit_logs</td>
+              <td>user_id, action, auditable_type/id, old_values <code>jsonb</code>, new_values <code>jsonb</code>, ip, user_agent</td>
+              <td>index(auditable_type, auditable_id)</td>
+            </tr>
+            <tr>
+              <td class="mono tight">notifications<br>booking_guests</td>
+              <td>tables Laravel standard · accompagnants : full_name, email, phone, is_lead</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Multilingue : <code>jsonb</code> plutôt que colonnes doublées</h3>
+      <p>Les champs traduisibles (<code>name</code>, <code>description</code>) sont des colonnes <code>jsonb</code> de forme <code>{"fr": "…", "en": "…"}</code>, exposées par un cast maison <code>Translatable</code>. Ajouter le wolof ou le portugais plus tard ne coûtera aucune migration. Le <code>slug</code> reste unique et français en v1.</p>
+    </section>
+
+    <!-- 04 -->
+    <section id="rel">
+      <div class="sec-head">
+        <div class="sec-num">04</div>
+        <h2>Relations Eloquent</h2>
+      </div>
+
+      <pre>PropertyOwner ──1:N──▶ Property ──N:1──▶ Destination
+      │                    │
+      │ (user_id nullable) │──1:N──▶ PropertyImage
+      ▼                    │──N:N──▶ Amenity            <i>via property_amenity</i>
+    User <i>[v2]</i>           │──1:N──▶ PricingRule
+                           │──1:N──▶ AvailabilityBlock
+                           │──1:N──▶ Booking
+                           │──1:N──▶ Review
+                           └──N:N──▶ User               <i>via favorites</i>
+
+User (customer) ──1:N──▶ Booking ──1:1──▶ Payment ──1:N──▶ PaymentTransaction
+                            │                  └──1:N──▶ Refund
+                            │──1:1──▶ Commission
+                            │──1:1──▶ Review
+                            │──1:N──▶ BookingGuest
+                            └──1:1──▶ AvailabilityBlock  <i>reason = booking</i>
+
+User ◀──N:1── Conversation ──1:N──▶ Message ──N:1──▶ User <i>(sender)</i>
+Promotion ──1:N──▶ PromotionUsage ──N:1──▶ Booking</pre>
+
+      <div class="note">
+        <h4>Le point d'articulation vers la v2</h4>
+        <p><code>PropertyOwner</code> et <code>User</code> sont deux entités distinctes, reliées par un <code>user_id</code> <strong>nullable</strong> resté vide en v1. Le jour où un propriétaire doit se connecter, on crée son <code>User</code>, on renseigne la clé, on ajoute le rôle <code>owner</code> et un jeu de Policies — <strong>sans toucher à <code>properties</code>, ni aux réservations, ni aux paiements</strong>. C'est la seule concession d'architecture faite au futur, et elle ne coûte rien aujourd'hui.</p>
+      </div>
+
+      <p>Toutes les listes utilisent l'eager loading explicite — <code>Property::with(['destination','primaryImage','amenities'])</code> — et les compteurs passent par <code>withCount</code>. Aucune requête dans une boucle Blade.</p>
+    </section>
+
+    <!-- 05 -->
+    <section id="roles">
+      <div class="sec-head">
+        <div class="sec-num">05</div>
+        <h2>Rôles et permissions</h2>
+      </div>
+      <p>Trois profils seulement. Un package de permissions serait de la dette pure : un enum <code>UserRole</code> sur <code>users</code>, un middleware, et des Policies suffisent et restent lisibles.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Profil</th><th>Mécanisme</th><th>Peut</th><th>Ne peut jamais</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Guest</strong></td>
+              <td class="mono">non authentifié</td>
+              <td>Parcourir, rechercher, filtrer, consulter une villa publiée, voir les disponibilités, s'inscrire</td>
+              <td>Réserver, mettre en favori, voir une villa non publiée</td>
+            </tr>
+            <tr>
+              <td><strong>Customer</strong></td>
+              <td class="mono">role = customer</td>
+              <td>Réserver, payer, gérer profil/favoris/réservations, annuler selon règles, écrire un avis après séjour, messagerie avec l'admin</td>
+              <td>Accéder à <code>/admin</code>, lire les données d'un autre client, voir une adresse exacte hors réservation confirmée</td>
+            </tr>
+            <tr>
+              <td><strong>Admin</strong></td>
+              <td class="mono">role = admin</td>
+              <td>Tout le back-office : villas, propriétaires, photos, équipements, destinations, prix, disponibilités, réservations, paiements, commissions, avis, promotions, réglages, statistiques</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Owner</strong> <span class="chip neutral">v2</span></td>
+              <td class="mono">non implémenté</td>
+              <td colspan="2">Prévu par le <code>user_id</code> nullable de <code>PropertyOwner</code>. <strong>Aucun code écrit maintenant.</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Barrières concrètes</h3>
+      <ul>
+        <li><code>EnsureUserIsAdmin</code> sur tout le groupe de routes <code>/admin</code>.</li>
+        <li><code>BookingPolicy::view</code> — <code>$booking->user_id === $user->id</code>, ou admin. Rien d'autre.</li>
+        <li><code>ReviewPolicy::create</code> — la réservation doit être <code>completed</code>, appartenir à l'utilisateur, et ne pas déjà porter d'avis.</li>
+        <li>Une villa hors <code>published</code> renvoie 404 en public, y compris par accès direct au slug.</li>
+        <li><code>latitude</code>/<code>longitude</code> exacts et <code>internal_address</code> ne sont <strong>jamais</strong> sérialisés côté public : la carte publique consomme <code>approx_lat/lng</code>, un point flouté à ~500 m.</li>
+        <li>Rate limiting sur connexion, inscription, création de réservation, formulaire de contact.</li>
+        <li><code>audit_logs</code> sur toute écriture admin sensible : publication, prix, statut de réservation, remboursement.</li>
+      </ul>
+    </section>
+
+    <!-- 06 -->
+    <section id="booking">
+      <div class="sec-head">
+        <div class="sec-num">06</div>
+        <h2>Workflow de réservation</h2>
+      </div>
+      <p>C'est la partie où une marketplace se casse. La règle : <strong>la disponibilité n'est pas vérifiée par PHP, elle est garantie par PostgreSQL.</strong> Une vérification applicative laisse toujours une fenêtre de course entre le <code>SELECT</code> et le <code>INSERT</code>. Une contrainte d'exclusion, non.</p>
+
+      <pre>ALTER TABLE availability_blocks
+  ADD CONSTRAINT availability_blocks_no_overlap
+  EXCLUDE USING gist (
+    property_id WITH =,
+    period      WITH &amp;&amp;
+  );</pre>
+      <p>Deux réservations simultanées sur les mêmes dates : la première passe, la seconde reçoit une <code>23P01 exclusion_violation</code>, que <code>BookingService</code> traduit en message clair. Le chevauchement devient impossible, quel que soit le nombre de processus PHP.</p>
+
+      <div class="flow">
+        <div class="step"><div class="step-n">1</div><div class="step-body">
+          <strong>Sélection des dates</strong>
+          <p>Calendrier Livewire alimenté par <code>AvailabilityService</code>, qui fusionne blocages manuels et réservations actives.</p>
+          <div class="guard">refus si <b>date passée</b> · <b>nights &lt; min_nights</b> · <b>guests &gt; capacity</b></div>
+        </div></div>
+        <div class="step"><div class="step-n">2</div><div class="step-body">
+          <strong>Devis</strong>
+          <p><code>PricingService::quote()</code> applique, dans l'ordre : règle de période personnalisée, saison, tarif semaine, tarif week-end, tarif de base. Puis ménage, frais de service, promotion. Le résultat est un objet <code>Quote</code> immuable.</p>
+          <div class="guard">le total affiché est <b>recalculé serveur</b> à l'étape 3 — le navigateur n'est jamais cru</div>
+        </div></div>
+        <div class="step"><div class="step-n">3</div><div class="step-body">
+          <strong>Hold — transaction unique</strong>
+          <p><code>BookingService::hold()</code> : <code>DB::transaction</code> → verrou <code>SELECT … FOR UPDATE</code> sur la villa → insertion <code>bookings</code> en <code>pending</code> → insertion <code>availability_blocks</code> avec <code>reason = booking</code>. La contrainte d'exclusion arbitre.</p>
+          <div class="guard">échec propre sur <b>23P01</b> → « ces dates viennent d'être réservées »</div>
+        </div></div>
+        <div class="step"><div class="step-n">4</div><div class="step-body">
+          <strong>Paiement</strong>
+          <p>Création du <code>Payment</code> en <code>pending</code>, redirection vers la passerelle. Le hold protège les dates pendant la tentative.</p>
+        </div></div>
+        <div class="step"><div class="step-n">5</div><div class="step-body">
+          <strong>Webhook serveur</strong>
+          <p>Signature vérifiée, événement enregistré dans <code>payment_transactions</code>, idempotence par <code>unique(gateway, provider_event_id)</code>. Un webhook rejoué ne confirme jamais deux fois.</p>
+          <div class="guard">un retour navigateur ne confirme <b>jamais</b> un paiement</div>
+        </div></div>
+        <div class="step"><div class="step-n">6</div><div class="step-body">
+          <strong>Confirmation</strong>
+          <p><code>booking → confirmed</code>, <code>payment → succeeded</code>, génération de la <code>Commission</code>, notifications au client et à l'admin.</p>
+        </div></div>
+        <div class="step"><div class="step-n">7</div><div class="step-body">
+          <strong>Expiration des holds</strong>
+          <p>Job planifié <code>ExpirePendingBookings</code> : au-delà du délai configuré (30 min par défaut, réglable dans <code>settings</code>), la réservation passe <code>cancelled</code> et son blocage est supprimé. Sans ce job, un panier abandonné gèle un calendrier.</p>
+        </div></div>
+        <div class="step"><div class="step-n">8</div><div class="step-body">
+          <strong>Fin de séjour</strong>
+          <p>Le scheduler passe en <code>completed</code> les réservations dont la date de départ est dépassée — ce qui <em>ouvre le droit à l'avis</em>.</p>
+        </div></div>
+        <div class="step"><div class="step-n">9</div><div class="step-body">
+          <strong>Annulation / remboursement</strong>
+          <p>Politique d'annulation lue dans <code>settings</code>. Libération du blocage, création éventuelle d'un <code>Refund</code>, commission repassée en <code>cancelled</code>.</p>
+        </div></div>
+      </div>
+
+      <p>Cinq statuts, transitions explicites, aucune autre permise : <code class="mono">pending → confirmed → completed</code>, avec <code>cancelled</code> accessible depuis <code>pending</code> et <code>confirmed</code>, et <code>refunded</code> depuis <code>cancelled</code>.</p>
+    </section>
+
+    <!-- 07 -->
+    <section id="pay">
+      <div class="sec-head">
+        <div class="sec-num">07</div>
+        <h2>Stratégie de paiement</h2>
+      </div>
+      <p>Une seule interface, plusieurs implémentations, résolues par configuration. Le domaine métier ignore totalement quelle passerelle est active.</p>
+
+      <pre>interface PaymentGateway
+{
+    public function name(): string;
+    public function initiate(Payment $payment, array $ctx): GatewayRedirect;
+    public function verify(string $reference): GatewayStatus;
+    public function refund(Payment $payment, Money $amount): GatewayRefund;
+    public function verifyWebhookSignature(Request $request): bool;
+    public function parseWebhook(Request $request): GatewayEvent;
+}</pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Implémentation</th><th>Statut prévu</th><th>Remarque</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">ManualTransferGateway</td><td><span class="chip ok">Fonctionnelle sans credentials</span></td><td>Wave, Orange Money, virement. L'admin marque le paiement reçu → le webhook interne confirme. Réaliste pour le marché sénégalais et opérationnel dès le jour 1.</td></tr>
+            <tr><td class="mono">PayDunyaGateway</td><td><span class="chip warn">Étape 09, credentials requis</span></td><td>Mobile money sénégalais, la référence locale.</td></tr>
+            <tr><td class="mono">PayTechGateway</td><td><span class="chip warn">Étape 09, credentials requis</span></td><td>Alternative locale.</td></tr>
+            <tr><td class="mono">StripeGateway</td><td><span class="chip warn">Étape 09, credentials requis</span></td><td>Cartes internationales — clientèle européenne.</td></tr>
+            <tr><td class="mono">FakeGateway</td><td><span class="chip neutral">Tests uniquement</span></td><td>Vit dans <code>tests/</code>, jamais chargeable en production.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <h4>Engagement d'honnêteté</h4>
+        <p>Tant que vous ne fournirez pas de credentials PayDunya, PayTech ou Stripe, ces passerelles seront livrées <strong>implémentées mais non vérifiées en conditions réelles</strong>, et je le signalerai explicitement. Je ne présenterai jamais une simulation comme une intégration fonctionnelle. Le mode <code>ManualTransferGateway</code>, lui, sera réellement testable de bout en bout.</p>
+      </div>
+
+      <h3>Commissions</h3>
+      <p>Taux stocké dans <code>settings</code> (défaut 10 %), figé sur la réservation au moment de la confirmation — un changement de taux ne doit jamais réécrire l'historique.</p>
+      <pre>base           1 000 000 FCFA
+rate                 10.00 %
+commission       100 000 FCFA   <i>intdiv arrondi explicite</i>
+owner_payout     900 000 FCFA   <i>base - commission, jamais recalculé</i></pre>
+    </section>
+
+    <!-- 08 -->
+    <section id="media">
+      <div class="sec-head">
+        <div class="sec-num">08</div>
+        <h2>Stratégie de stockage des images</h2>
+      </div>
+      <p>Un site de villas est un site de photographie. Le disque Laravel <code>properties</code> abstrait la destination : <code>local</code> en développement, <code>s3</code> pointé sur Cloudflare R2 en production. <strong>Le code applicatif est identique dans les deux cas</strong> — seul le <code>.env</code> change.</p>
+
+      <dl class="kv">
+        <div class="kv-row"><dt>Upload</dt><dd>Livewire temporary uploads, drag &amp; drop Alpine, multi-fichiers. Validation : <code>image</code>, mimes jpeg/png/webp, 8 Mo max, largeur minimale 1200 px.</dd></div>
+        <div class="kv-row"><dt>Sécurité</dt><dd>Extension déduite du contenu réel, jamais du nom fourni. Nom de fichier régénéré. <strong>EXIF supprimé à l'ingestion</strong> — une photo de villa contient souvent les coordonnées GPS exactes du bien.</dd></div>
+        <div class="kv-row"><dt>Dérivés</dt><dd>Job <code>GenerateImageConversions</code> en file Redis, via <code>intervention/image</code> (pilote GD, présent). Quatre tailles : <code>thumb 400</code>, <code>card 800</code>, <code>hero 1600</code>, <code>full 2400</code>, en WebP avec repli JPEG. Chemins consignés dans <code>property_images.conversions</code>.</dd></div>
+        <div class="kv-row"><dt>Ordre</dt><dd>Colonne <code>position</code>, réordonnancement drag &amp; drop envoyé en un seul PATCH. <code>is_primary</code> garanti unique par villa via index partiel.</dd></div>
+        <div class="kv-row"><dt>Affichage</dt><dd><code>srcset</code> + <code>sizes</code>, <code>loading="lazy"</code> hors première image, <code>width</code>/<code>height</code> toujours posés pour éviter le décalage de mise en page.</dd></div>
+        <div class="kv-row"><dt>Production</dt><dd>R2 : endpoint compatible S3, <code>AWS_ENDPOINT</code> + <code>AWS_USE_PATH_STYLE_ENDPOINT</code>, <strong>egress gratuit</strong> — décisif pour un site riche en images consulté depuis l'Europe.</dd></div>
+      </dl>
+    </section>
+
+    <!-- 09 -->
+    <section id="pkg">
+      <div class="sec-head">
+        <div class="sec-num">09</div>
+        <h2>Packages</h2>
+      </div>
+      <p>Chaque dépendance doit gagner sa place. La liste est volontairement courte.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Package</th><th>Rôle</th><th>Pourquoi</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">laravel/framework ^13.26</td><td>socle</td><td>Dernière stable, compatible PHP 8.3.6</td></tr>
+            <tr><td class="mono">livewire/livewire ^4.4</td><td>îlots interactifs</td><td>Filtres, calendrier, uploader, wizard</td></tr>
+            <tr><td class="mono">predis/predis</td><td>client Redis</td><td>Pur PHP — évite d'attendre <code>php8.3-redis</code>. Remplaçable par l'extension ensuite, sans changement de code</td></tr>
+            <tr><td class="mono">intervention/image ^3</td><td>miniatures</td><td>Pilote GD, déjà présent</td></tr>
+            <tr><td class="mono">laravel/breeze</td><td>auth (dev)</td><td>Stack Blade + Alpine + Tailwind, scaffolding supprimé après adaptation</td></tr>
+            <tr><td class="mono">league/flysystem-aws-s3-v3</td><td>stockage prod</td><td>R2 / S3</td></tr>
+            <tr><td class="mono">laravel/horizon</td><td>supervision des files</td><td>Redis déjà actif ; visibilité sur images, mails, expirations</td></tr>
+            <tr><td class="mono">pestphp/pest ^4</td><td>tests</td><td>Syntaxe concise, couverture §33</td></tr>
+            <tr><td class="mono">larastan/larastan</td><td>analyse statique</td><td>Niveau 6, attrape les erreurs de typage financier</td></tr>
+            <tr><td class="mono">laravel/pint · debugbar</td><td>outillage dev</td><td>Style, requêtes N+1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Écartés délibérément</h3>
+      <ul>
+        <li><strong>spatie/laravel-permission</strong> — deux rôles réels. Un enum et des Policies sont plus clairs et plus rapides.</li>
+        <li><strong>spatie/laravel-medialibrary</strong> — le cahier des charges impose une table <code>property_images</code> dédiée ; un modèle maison donne un contrôle direct sur l'ordre et l'image principale.</li>
+        <li><strong>Un package de sitemap</strong> — une route et une vue XML suffisent, sans dépendance.</li>
+        <li><strong>Laravel Sail</strong> — PostgreSQL et Redis tournent déjà nativement ; ajouter Docker par-dessus ralentirait le cycle de développement.</li>
+      </ul>
+      <p>Front : <code>tailwindcss ^4</code> (configuration CSS-first via <code>@theme</code>), <code>@tailwindcss/vite</code>, <code>alpinejs</code>, <code>vite ^7</code>.</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="plan">
+      <div class="sec-head">
+        <div class="sec-num">10</div>
+        <h2>Plan de développement</h2>
+      </div>
+      <p>Quatorze étapes. À chacune : objectif annoncé, implémentation, commandes exécutées, tests lancés, résultat vérifié, résumé — puis validation avant de continuer. Aucune étape n'est déclarée terminée sans exécution réelle.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="mono">#</th><th>Étape</th><th>Livrable vérifiable</th><th>Tests</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">01</td><td>Analyse</td><td>Ce document</td><td><span class="chip ok">Fait</span></td></tr>
+            <tr><td class="mono">02</td><td>Initialisation</td><td>Laravel installé, <code>.env</code> PostgreSQL + Redis, Tailwind/Alpine/Livewire compilés, Breeze, Git initialisé, <code>php artisan serve</code> répond</td><td>smoke test</td></tr>
+            <tr><td class="mono">03</td><td>Base de données</td><td>Toutes les migrations, contrainte <code>EXCLUDE</code>, modèles, relations, factories, seeders de démonstration</td><td>migration + relations</td></tr>
+            <tr><td class="mono">04</td><td>Design system</td><td>Tokens navy/sable/doré, typographie, ~20 composants Blade, page de démonstration des composants</td><td>rendu</td></tr>
+            <tr><td class="mono">05</td><td>Marketplace publique</td><td>Homepage, destinations, catalogue, filtres, tri, page villa</td><td>recherche, filtres, 404 sur villa non publiée</td></tr>
+            <tr><td class="mono">06</td><td>Administration</td><td>Dashboard, propriétaires, wizard villa 10 étapes, photos, équipements, destinations, disponibilités</td><td>CRUD, publication, permissions</td></tr>
+            <tr><td class="mono">07</td><td>Espace client</td><td>Compte, dashboard, favoris, réservations, profil</td><td>isolation entre clients</td></tr>
+            <tr><td class="mono">08</td><td>Réservation</td><td>Calendrier, devis, hold transactionnel, expiration</td><td><strong>double réservation concurrente</strong>, calcul de prix, dates passées</td></tr>
+            <tr><td class="mono">09</td><td>Paiements</td><td>Interface, virement manuel opérationnel, passerelles + webhooks</td><td>webhook rejoué, échec, remboursement, commission</td></tr>
+            <tr><td class="mono">10</td><td>Avis &amp; notifications</td><td>Avis après séjour, notifications mail + internes</td><td>avis unique, avis sans séjour refusé</td></tr>
+            <tr><td class="mono">11</td><td>SEO &amp; i18n</td><td>Slugs, meta, Open Graph, sitemap, données structurées, FR/EN complets</td><td>routes localisées, canonical</td></tr>
+            <tr><td class="mono">12</td><td>Tests &amp; sécurité</td><td>Couverture §33, Policies auditées, rate limiting, en-têtes</td><td>suite complète verte</td></tr>
+            <tr><td class="mono">13</td><td>Optimisation</td><td>Chasse aux N+1, index, cache Redis, images, Lighthouse</td><td>mesures avant/après</td></tr>
+            <tr><td class="mono">14</td><td>Déploiement</td><td>Checklist production, R2, Horizon, sauvegardes, procédure</td><td>déploiement à blanc</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <h4>Prochaine action</h4>
+        <p>L'étape 02 est bloquée sur l'installation de <code>php8.3-pgsql</code> et la création du rôle PostgreSQL — <a href="#env">commandes en §00</a>. Une fois ces deux commandes passées, indiquez-moi le mot de passe choisi pour le rôle <code>villa</code> et j'enchaîne l'initialisation complète.</p>
+        <p>Si vous préférez ne pas attendre, je peux démarrer l'étape 02 en configurant tout le projet <em>sauf</em> la connexion base — installation Laravel, Tailwind, Alpine, Livewire, Git, structure des dossiers — et brancher PostgreSQL dès que le pilote est disponible.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
