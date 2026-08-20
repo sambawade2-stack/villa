@@ -8,6 +8,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Property;
 use App\Models\User;
+use App\Support\BookingReference;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -46,7 +47,7 @@ class BookingFactory extends Factory
 
     public static function makeReference(): string
     {
-        return 'PCV-'.now()->format('Y').'-'.str_pad((string) fake()->unique()->numberBetween(1, 999_999), 6, '0', STR_PAD_LEFT);
+        return BookingReference::next();
     }
 
     public function confirmed(): static

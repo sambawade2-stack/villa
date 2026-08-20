@@ -28,6 +28,7 @@ use App\Models\Review;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\Compliance\ComplianceService;
+use App\Support\BookingReference;
 use App\Support\Money;
 use Database\Seeders\Support\DemoContent;
 use Database\Seeders\Support\DemoImageFactory;
@@ -46,8 +47,6 @@ use Illuminate\Support\Str;
 class DemoSeeder extends Seeder
 {
     private DemoImageFactory $images;
-
-    private int $reference = 0;
 
     public function run(): void
     {
@@ -369,7 +368,7 @@ class DemoSeeder extends Seeder
         $commission = $total->percentage($commissionRate);
 
         $booking = Booking::create([
-            'reference' => $this->nextReference(),
+            'reference' => BookingReference::next(),
             'property_id' => $property->id,
             'user_id' => $customer->id,
             'checkin_date' => $checkin->toDateString(),
@@ -484,11 +483,6 @@ class DemoSeeder extends Seeder
                 ]);
             }
         }
-    }
-
-    private function nextReference(): string
-    {
-        return 'PCV-'.now()->year.'-'.str_pad((string) ++$this->reference, 6, '0', STR_PAD_LEFT);
     }
 
     /** La sortie console n'existe que si le seeder est lancé par artisan. */

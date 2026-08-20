@@ -378,16 +378,35 @@
                 @endif
 
                 <div class="mt-5 flex flex-col gap-2 border-t border-stone-200 pt-5">
-                    <x-ui.button size="lg" icon="calendar" class="w-full"
-                                 :href="route('contact', array_filter([
-                                     'sujet' => 'reservation',
-                                     'villa' => $property->slug,
-                                     'checkin' => $requestedDates ? $quote->checkin : null,
-                                     'checkout' => $requestedDates ? $quote->checkout : null,
-                                     'guests' => $quote?->guests,
-                                 ]))">
-                        {{ __('Demander à réserver') }}
-                    </x-ui.button>
+                    @if (session('error'))
+                        <x-ui.alert variant="danger" class="mb-1">{{ session('error') }}</x-ui.alert>
+                    @endif
+
+                    @auth
+                        @if ($requestedDates)
+                            {{-- Seules les dates et le nombre de voyageurs traversent :
+                                 le montant est recalculé côté serveur, jamais accepté du formulaire. --}}
+                            <form method="POST" action="{{ route('bookings.store', $property) }}">
+                                @csrf
+                                <input type="hidden" name="checkin" value="{{ $quote->checkin }}">
+                                <input type="hidden" name="checkout" value="{{ $quote->checkout }}">
+                                <input type="hidden" name="guests" value="{{ $quote->guests }}">
+                                <x-ui.button type="submit" size="lg" icon="calendar" class="flex w-full">
+                                    {{ __('Réserver ces dates') }}
+                                </x-ui.button>
+                            </form>
+                        @else
+                            <x-ui.button size="lg" icon="calendar" class="flex w-full" disabled
+                                         title="{{ __('Choisissez vos dates ci-dessus') }}">
+                                {{ __('Choisissez vos dates') }}
+                            </x-ui.button>
+                        @endif
+                    @else
+                        <x-ui.button size="lg" icon="calendar" class="flex w-full"
+                                     :href="route('login', ['redirect' => request()->fullUrl()])">
+                            {{ __('Se connecter pour réserver') }}
+                        </x-ui.button>
+                    @endauth
 
                     @if ($whatsapp)
                         <x-whatsapp-button :message="$bookingBody" variant="outline" size="lg" class="w-full">

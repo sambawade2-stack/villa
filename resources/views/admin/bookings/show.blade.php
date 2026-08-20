@@ -73,6 +73,47 @@
         </div>
 
         <aside class="flex flex-col gap-5">
+            @php
+                $payment = $booking->payment;
+                $canConfirm = $payment && ! $payment->status->isSettled() && $booking->isPending();
+                $canCancel = $booking->status->canTransitionTo(\App\Enums\BookingStatus::Cancelled);
+            @endphp
+
+            @if ($canConfirm || $canCancel)
+                <x-admin.panel :title="__('Actions')">
+                    <div class="flex flex-col gap-4 p-5">
+                        @if ($canConfirm)
+                            <form method="POST" action="{{ route('admin.bookings.confirm-payment', $booking) }}"
+                                  class="flex flex-col gap-2">
+                                @csrf
+                                <p class="text-sm leading-relaxed text-navy-600">
+                                    {{ __('Constatez la réception de :total pour confirmer la réservation et libérer la commission.', ['total' => $booking->total_amount->format()]) }}
+                                </p>
+                                <x-ui.input name="note" :label="__('Référence du versement')"
+                                            placeholder="{{ __('N° Wave, motif du virement…') }}" />
+                                <x-ui.button type="submit" size="sm" class="self-start">
+                                    {{ __('Confirmer le règlement') }}
+                                </x-ui.button>
+                            </form>
+                        @endif
+
+                        @if ($canCancel)
+                            <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}"
+                                  class="flex flex-col gap-2 border-t border-stone-200 pt-4"
+                                  onsubmit="return confirm('{{ __('Annuler cette réservation et libérer les dates ?') }}')">
+                                @csrf
+                                <x-ui.input name="reason" :label="__('Motif d\'annulation')" required
+                                            placeholder="{{ __('Demande du client, indisponibilité…') }}" />
+                                <x-ui.button type="submit" variant="ghost" size="sm"
+                                             class="self-start text-danger-700 hover:bg-danger-50">
+                                    {{ __('Annuler la réservation') }}
+                                </x-ui.button>
+                            </form>
+                        @endif
+                    </div>
+                </x-admin.panel>
+            @endif
+
             <x-admin.panel :title="__('Client')">
                 <div class="flex flex-col gap-2 p-5 text-sm">
                     <p class="font-medium text-navy-900">{{ $booking->user?->full_name }}</p>

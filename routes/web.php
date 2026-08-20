@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\BookingActionController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ComplianceController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\FavoriteController;
 use App\Http\Controllers\Customer\MessageController;
 use App\Http\Controllers\LocaleController;
@@ -57,6 +59,16 @@ Route::get('/langue/{locale}', LocaleController::class)->name('locale.switch');
 Route::middleware('auth')->group(function () {
     Route::get('/favoris', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favoris/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+    Route::post('/villas/{property}/reserver', [BookingController::class, 'store'])
+        ->middleware('throttle:20,1')->name('bookings.store');
+
+    Route::get('/reservations', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/reservations/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::get('/reservations/{booking}/paiement', [BookingController::class, 'checkout'])->name('bookings.checkout');
+    Route::post('/reservations/{booking}/paiement', [BookingController::class, 'pay'])
+        ->middleware('throttle:20,1')->name('bookings.pay');
+    Route::post('/reservations/{booking}/annuler', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [MessageController::class, 'create'])->middleware('throttle:20,1')->name('messages.create');
@@ -125,6 +137,8 @@ Route::middleware(['auth', 'admin'])
 
         Route::get('/reservations', [AdminBookingController::class, 'index'])->name('bookings.index');
         Route::get('/reservations/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
+        Route::post('/reservations/{booking}/paiement', [BookingActionController::class, 'confirmPayment'])->name('bookings.confirm-payment');
+        Route::post('/reservations/{booking}/annuler', [BookingActionController::class, 'cancel'])->name('bookings.cancel');
 
         Route::get('/clients', [AdminCustomerController::class, 'index'])->name('customers.index');
 
