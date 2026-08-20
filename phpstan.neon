@@ -1,0 +1,24 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+
+    # Les tests Pest sont exclus : leurs closures sont liées dynamiquement au
+    # TestCase à l'exécution, si bien que $this->… y est indéchiffrable pour
+    # l'analyse statique. Ce n'est pas une suppression d'erreur réelle.
+    paths:
+        - app
+        - database
+
+    ignoreErrors:
+        # Les scopes Eloquent sans type de retour générique explicite.
+        - identifier: missingType.generics
+
+        # Illuminate\Database\Seeder::$command est déclarée sans type et vaut
+        # null tant que le seeder n'est pas lancé par artisan ; c'est son @var
+        # qui la dit non nullable. Laravel lui-même la teste avec isset()
+        # (Seeder.php:52). L'erreur vient de l'annotation, pas du code.
+        -
+            identifier: isset.property
+            path: database/seeders/*.php
