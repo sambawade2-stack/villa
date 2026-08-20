@@ -66,6 +66,7 @@ class BookingService
             /** @var Property $locked */
             $locked = Property::query()->whereKey($property->getKey())->lockForUpdate()->firstOrFail();
 
+            $this->assertIsTraveller($customer);
             $this->assertBookable($locked, $checkin, $checkout, $guests);
 
             // Le prix est recalculé ici, à partir de la base. Un total venu du
@@ -225,6 +226,24 @@ class BookingService
     }
 
     // ------------------------------------------------------------------ interne
+
+    /**
+     * Un administrateur n'est pas un voyageur.
+     *
+     * Il gère les réservations des clients ; s'il pouvait en créer à son nom,
+     * le chiffre d'affaires et les commissions mélangeraient exploitation et
+     * usage. La frontière se tient ici, pas seulement dans les routes.
+     *
+     * @throws BookingNotAllowedException
+     */
+    private function assertIsTraveller(User $customer): void
+    {
+        if ($customer->isAdmin()) {
+            throw new BookingNotAllowedException(
+                __('Un compte administrateur ne peut pas réserver. Créez la réservation au nom du client.')
+            );
+        }
+    }
 
     /** @throws BookingNotAllowedException */
     private function assertBookable(Property $property, string $checkin, string $checkout, int $guests): void

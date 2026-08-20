@@ -57,7 +57,24 @@ Route::get('/langue/{locale}', LocaleController::class)->name('locale.switch');
 |--------------------------------------------------------------------------
 */
 
+/*
+ * Les notifications ne sont propres à aucun rôle : un administrateur reçoit les
+ * siennes et doit pouvoir les lire. Ce groupe reste ouvert aux deux.
+ */
 Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+});
+
+/*
+ * Espace voyageur, fermé aux administrateurs.
+ *
+ * Un administrateur gère les réservations des clients depuis /admin ; il n'en a
+ * pas à son nom. Sans cette frontière, exploitation et usage se mélangeraient
+ * dans le chiffre d'affaires comme dans les commissions.
+ */
+Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/favoris', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favoris/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
@@ -70,10 +87,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/reservations/{booking}/paiement', [BookingController::class, 'pay'])
         ->middleware('throttle:20,1')->name('bookings.pay');
     Route::post('/reservations/{booking}/annuler', [BookingController::class, 'cancel'])->name('bookings.cancel');
-
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}', [NotificationController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [MessageController::class, 'create'])->middleware('throttle:20,1')->name('messages.create');
