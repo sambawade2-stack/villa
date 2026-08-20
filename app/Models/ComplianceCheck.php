@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\FormatsFileSize;
 use App\Enums\ComplianceItem;
 use App\Enums\ComplianceStatus;
 use Illuminate\Database\Eloquent\Builder;
@@ -41,6 +42,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class ComplianceCheck extends Model
 {
+    use FormatsFileSize;
+
     protected $fillable = [
         'property_id', 'item', 'status',
         'document_path', 'document_name', 'document_mime', 'document_size',
@@ -53,6 +56,12 @@ class ComplianceCheck extends Model
 
     /** Le disque privé, hors de toute racine servie par le serveur web. */
     public const DISK = 'compliance';
+
+    /** La colonne de taille porte un autre nom sur ce modèle. */
+    protected function fileSizeColumn(): string
+    {
+        return 'document_size';
+    }
 
     protected function casts(): array
     {
@@ -92,25 +101,6 @@ class ComplianceCheck extends Model
         return $this->expires_on !== null
             && ! $this->hasExpired()
             && $this->expires_on->lessThanOrEqualTo(now()->addMonths(2));
-    }
-
-    /** Taille lisible, pour l'affichage dans l'administration. */
-    public function humanSize(): ?string
-    {
-        if ($this->document_size === null) {
-            return null;
-        }
-
-        $units = ['o', 'ko', 'Mo'];
-        $size = (float) $this->document_size;
-        $unit = 0;
-
-        while ($size >= 1024 && $unit < count($units) - 1) {
-            $size /= 1024;
-            $unit++;
-        }
-
-        return number_format($size, $unit === 0 ? 0 : 1, ',', ' ').' '.$units[$unit];
     }
 
     /** Supprime le fichier du disque privé en même temps que la ligne. */

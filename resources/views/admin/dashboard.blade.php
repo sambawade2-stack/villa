@@ -1,6 +1,7 @@
 <x-layouts.admin :title="__('Tableau de bord')" :heading="__('Tableau de bord')">
     <x-slot:actions>
-        <x-ui.button :href="route('admin.villas.index')" size="sm" icon="plus">{{ __('Gérer les villas') }}</x-ui.button>
+        <x-ui.button :href="route('admin.villas.create')" size="sm" icon="plus">{{ __('Ajouter une villa') }}</x-ui.button>
+        <x-ui.button :href="route('admin.villas.index')" variant="outline" size="sm">{{ __('Gérer les villas') }}</x-ui.button>
     </x-slot:actions>
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

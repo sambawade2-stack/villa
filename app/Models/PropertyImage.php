@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\TranslatableCast;
+use App\Concerns\FormatsFileSize;
 use App\Support\Translated;
 use Database\Factories\PropertyImageFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,7 +34,7 @@ use Illuminate\Support\Facades\Storage;
 class PropertyImage extends Model
 {
     /** @use HasFactory<PropertyImageFactory> */
-    use HasFactory;
+    use FormatsFileSize, HasFactory;
 
     protected $fillable = [
         'property_id', 'path', 'disk', 'alt', 'position', 'is_primary',

@@ -5,10 +5,19 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\PropertyStatus;
+use App\Enums\PropertyType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePropertyRequest;
+use App\Http\Requests\UpdatePropertyRequest;
+use App\Models\Amenity;
+use App\Models\Destination;
 use App\Models\Property;
+use App\Models\PropertyOwner;
+use App\Services\Compliance\ComplianceService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
@@ -37,5 +46,169 @@ class PropertyController extends Controller
                 ->groupBy('status')
                 ->pluck('total', 'status'),
         ]);
+    }
+
+    public function create(): View
+    {
+        return view('admin.villas.create', $this->formOptions());
+    }
+
+    /**
+     * Crée la villa en brouillon.
+     *
+     * On ne demande ici que l'indispensable. Le reste — description, photos,
+     * tarifs, équipements — s'ajoute ensuite section par section : un
+     * formulaire de trente champs fait perdre toute la saisie au premier oubli.
+     */
+    public function store(StorePropertyRequest $request, ComplianceService $compliance): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $property = Property::create([
+            ...$data,
+            'slug' => $this->uniqueSlug($data['name']),
+            'status' => PropertyStatus::Draft,
+            'beds' => $data['bedrooms'],
+            'min_nights' => 1,
+        ]);
+
+        // Le dossier de conformité naît avec la villa : il n'y a pas de moment
+        // plus tardif où l'on penserait à le créer.
+        $compliance->ensureChecklist($property);
+
+        return redirect()->route('admin.villas.edit', $property)
+            ->with('status', __('Brouillon créé. Complétez la fiche, puis publiez-la.'));
+    }
+
+    public function edit(Property $property): View
+    {
+        $property->load(['amenities', 'images', 'destination', 'owner']);
+
+        return view('admin.villas.edit', [
+            'property' => $property,
+            'blockers' => $property->publicationBlockers(),
+            ...$this->formOptions(),
+        ]);
+    }
+
+    public function update(UpdatePropertyRequest $request, Property $property): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $property->update([
+            ...collect($data)->except([
+                'description_fr', 'description_en',
+                'short_description_fr', 'short_description_en',
+                'amenities',
+            ])->all(),
+            'description' => ['fr' => $data['description_fr'] ?? null, 'en' => $data['description_en'] ?? null],
+            'short_description' => ['fr' => $data['short_description_fr'] ?? null, 'en' => $data['short_description_en'] ?? null],
+            'pets_allowed' => $request->boolean('pets_allowed'),
+            'parties_allowed' => $request->boolean('parties_allowed'),
+            'smoking_allowed' => $request->boolean('smoking_allowed'),
+        ]);
+
+        $property->amenities()->sync($data['amenities'] ?? []);
+
+        return back()->with('status', __('Fiche enregistrée.'));
+    }
+
+    /**
+     * Publie la villa.
+     *
+     * Le refus s'appuie sur publicationBlockers(), qui liste les manques : nom,
+     * description, photo, prix, capacité. On ne publie jamais une fiche
+     * incomplète — elle décevrait le voyageur avant même sa réservation.
+     */
+    public function publish(Property $property): RedirectResponse
+    {
+        $blockers = $property->publicationBlockers();
+
+        if ($blockers !== []) {
+            return back()->with('error', __('Publication impossible : il manque encore :manques.', [
+                'manques' => implode(', ', array_map(fn (string $key) => __('villas.blockers.'.$key), $blockers)),
+            ]));
+        }
+
+        $property->update([
+            'status' => PropertyStatus::Published,
+            'published_at' => $property->published_at ?? now(),
+            ...$this->approximateCoordinates($property),
+        ]);
+
+        return back()->with('status', __('Villa publiée.'));
+    }
+
+    public function unpublish(Request $request, Property $property): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', 'in:unpublished,suspended'],
+        ]);
+
+        $property->update(['status' => PropertyStatus::from($data['status'])]);
+
+        return back()->with('status', __('Villa retirée du catalogue.'));
+    }
+
+    public function destroy(Property $property): RedirectResponse
+    {
+        if ($property->bookings()->holdingDates()->exists()) {
+            return back()->with('error', __('Cette villa porte des réservations en cours : annulez-les d\'abord.'));
+        }
+
+        $property->delete();
+
+        return redirect()->route('admin.villas.index')
+            ->with('status', __('Villa supprimée. Elle reste récupérable en base.'));
+    }
+
+    /**
+     * Coordonnées floutées servies au public.
+     *
+     * Environ 400 à 600 mètres de décalage : assez pour situer le quartier,
+     * pas assez pour désigner la maison. Les coordonnées exactes ne quittent
+     * jamais l'administration.
+     *
+     * @return array<string, float|null>
+     */
+    private function approximateCoordinates(Property $property): array
+    {
+        if ($property->latitude === null || $property->longitude === null) {
+            return [];
+        }
+
+        // Décalage déterministe : la position floutée ne bouge pas à chaque
+        // publication, ce qui ferait sauter le point sur la carte.
+        $seed = crc32($property->slug);
+        $offset = fn (int $shift) => ((($seed >> $shift) % 80) - 40) / 10000;
+
+        return [
+            'approx_latitude' => round((float) $property->latitude + $offset(0), 7),
+            'approx_longitude' => round((float) $property->longitude + $offset(8), 7),
+        ];
+    }
+
+    private function uniqueSlug(string $name): string
+    {
+        $base = Str::slug($name);
+        $slug = $base;
+        $suffix = 2;
+
+        while (Property::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.$suffix++;
+        }
+
+        return $slug;
+    }
+
+    /** @return array<string, mixed> */
+    private function formOptions(): array
+    {
+        return [
+            'owners' => PropertyOwner::query()->active()->orderBy('last_name')->get(),
+            'destinations' => Destination::query()->ordered()->get(),
+            'types' => PropertyType::cases(),
+            'amenities' => Amenity::query()->active()->ordered()->get()->groupBy('category'),
+        ];
     }
 }

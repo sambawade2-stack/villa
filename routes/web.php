@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PropertyController as AdminPropertyController;
+use App\Http\Controllers\Admin\PropertyImageController as AdminPropertyImageController;
 use App\Http\Controllers\Admin\PropertyOwnerController as AdminOwnerController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
@@ -150,6 +151,18 @@ Route::middleware(['auth', 'admin'])
         Route::get('/', AdminDashboardController::class)->name('dashboard');
 
         Route::get('/villas', [AdminPropertyController::class, 'index'])->name('villas.index');
+        Route::get('/villas/nouvelle', [AdminPropertyController::class, 'create'])->name('villas.create');
+        Route::post('/villas', [AdminPropertyController::class, 'store'])->name('villas.store');
+        Route::get('/villas/{property}/modifier', [AdminPropertyController::class, 'edit'])->name('villas.edit');
+        Route::put('/villas/{property}', [AdminPropertyController::class, 'update'])->name('villas.update');
+        Route::post('/villas/{property}/publier', [AdminPropertyController::class, 'publish'])->name('villas.publish');
+        Route::post('/villas/{property}/retirer', [AdminPropertyController::class, 'unpublish'])->name('villas.unpublish');
+        Route::delete('/villas/{property}', [AdminPropertyController::class, 'destroy'])->name('villas.destroy');
+
+        Route::post('/villas/{property}/photos', [AdminPropertyImageController::class, 'store'])->name('villas.photos.store');
+        Route::post('/villas/{property}/photos/{image}/couverture', [AdminPropertyImageController::class, 'makePrimary'])->name('villas.photos.primary');
+        Route::post('/villas/{property}/photos/ordre', [AdminPropertyImageController::class, 'reorder'])->name('villas.photos.reorder');
+        Route::delete('/villas/{property}/photos/{image}', [AdminPropertyImageController::class, 'destroy'])->name('villas.photos.destroy');
 
         Route::get('/proprietaires', [AdminOwnerController::class, 'index'])->name('owners.index');
         Route::get('/proprietaires/nouveau', [AdminOwnerController::class, 'create'])->name('owners.create');

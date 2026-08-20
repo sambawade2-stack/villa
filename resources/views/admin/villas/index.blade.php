@@ -1,6 +1,12 @@
 @php use App\Enums\PropertyStatus; @endphp
 
 <x-layouts.admin :title="__('Villas')" :heading="__('Villas')">
+    <x-slot:actions>
+        <x-ui.button :href="route('admin.villas.create')" size="sm" icon="plus">
+            {{ __('Ajouter une villa') }}
+        </x-ui.button>
+    </x-slot:actions>
+
     <div class="flex flex-wrap items-center gap-3">
         <form method="GET" class="flex items-center gap-2">
             @if ($status) <input type="hidden" name="status" value="{{ $status }}"> @endif
@@ -74,10 +80,15 @@
                                 </x-ui.badge>
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-right">
-                            <x-ui.button :href="route('admin.villas.compliance.show', $property)" variant="outline" size="sm">
-                                {{ __('Dossier') }}
-                            </x-ui.button>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <x-ui.button :href="route('admin.villas.edit', $property)" variant="outline" size="sm">
+                                    {{ __('Modifier') }}
+                                </x-ui.button>
+                                <x-ui.button :href="route('admin.villas.compliance.show', $property)" variant="ghost" size="sm">
+                                    {{ __('Dossier') }}
+                                </x-ui.button>
+                            </div>
                         </td>
                     </tr>
                 @empty
