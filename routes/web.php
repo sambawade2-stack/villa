@@ -17,6 +17,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\FavoriteController;
 use App\Http\Controllers\Customer\MessageController;
+use App\Http\Controllers\Customer\NotificationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\DestinationController;
@@ -69,6 +70,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/reservations/{booking}/paiement', [BookingController::class, 'pay'])
         ->middleware('throttle:20,1')->name('bookings.pay');
     Route::post('/reservations/{booking}/annuler', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages', [MessageController::class, 'create'])->middleware('throttle:20,1')->name('messages.create');

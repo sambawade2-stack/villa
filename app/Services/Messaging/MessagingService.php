@@ -11,6 +11,8 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\Property;
 use App\Models\User;
+use App\Notifications\NewMessageReceived;
+use App\Services\Notifications\Notifier;
 use App\Services\WhatsApp\DTO\InboundMessage;
 use App\Services\WhatsApp\DTO\OutboundMessage;
 use App\Services\WhatsApp\WhatsAppManager;
@@ -25,7 +27,10 @@ use Illuminate\Support\Facades\DB;
  */
 class MessagingService
 {
-    public function __construct(private readonly WhatsAppManager $whatsapp) {}
+    public function __construct(
+        private readonly WhatsAppManager $whatsapp,
+        private readonly Notifier $notifier,
+    ) {}
 
     /** Ouvre le fil du client, ou reprend celui déjà ouvert sur le même sujet. */
     public function openConversation(
@@ -70,7 +75,7 @@ class MessagingService
         bool $fromAdmin = false,
         ?string $externalId = null,
     ): Message {
-        return DB::transaction(function () use ($conversation, $sender, $body, $channel, $fromAdmin, $externalId) {
+        $message = DB::transaction(function () use ($conversation, $sender, $body, $channel, $fromAdmin, $externalId) {
             $message = $conversation->messages()->create([
                 'sender_id' => $sender?->id,
                 'body' => $body,
@@ -87,6 +92,16 @@ class MessagingService
 
             return $message;
         });
+
+        // Le destinataire est l'autre partie : l'admin si le client écrit,
+        // le client si l'admin répond.
+        if ($fromAdmin) {
+            $this->notifier->to($conversation->user, new NewMessageReceived($message));
+        } else {
+            $this->notifier->toAdmins(new NewMessageReceived($message, forAdmin: true));
+        }
+
+        return $message;
     }
 
     /**

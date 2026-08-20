@@ -40,7 +40,25 @@
 
         <div class="flex items-center gap-2.5">
             @auth
-                @php $unreadMessages = auth()->user()->conversations()->where('customer_unread_count', '>', 0)->count(); @endphp
+                @php
+                    $unreadMessages = auth()->user()->conversations()->where('customer_unread_count', '>', 0)->count();
+                    $unreadAlerts = auth()->user()->unreadNotifications()->count();
+                @endphp
+
+                <a href="{{ route('notifications.index') }}"
+                   @class([
+                       'relative hidden rounded-lg p-2 transition-colors sm:block',
+                       'text-white/80 hover:bg-white/10 hover:text-white' => $transparent,
+                       'text-navy-500 hover:bg-stone-100 hover:text-navy-900' => ! $transparent,
+                   ])>
+                    <span class="sr-only">{{ __('Notifications') }}</span>
+                    <x-ui.icon name="info" class="size-5" />
+                    @if ($unreadAlerts > 0)
+                        <span class="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-amber-400 text-[0.6rem] font-bold text-navy-900 tabular">
+                            {{ $unreadAlerts > 9 ? '9+' : $unreadAlerts }}
+                        </span>
+                    @endif
+                </a>
                 <a href="{{ route('messages.index') }}"
                    @class([
                        'relative hidden rounded-lg p-2 transition-colors sm:block',
@@ -131,6 +149,8 @@
                 @auth
                     <x-ui.button :href="route('favorites.index')" variant="ghost" size="sm" icon="heart">{{ __('Favoris') }}</x-ui.button>
                     <x-ui.button :href="route('messages.index')" variant="ghost" size="sm" icon="message-circle">{{ __('Messages') }}</x-ui.button>
+                    <x-ui.button :href="route('bookings.index')" variant="ghost" size="sm" icon="calendar">{{ __('Réservations') }}</x-ui.button>
+                    <x-ui.button :href="route('notifications.index')" variant="ghost" size="sm" icon="info">{{ __('Notifications') }}</x-ui.button>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Déconnexion') }}</x-ui.button>

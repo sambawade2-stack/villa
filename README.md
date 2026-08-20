@@ -40,12 +40,31 @@ npm run build
 ## Développement
 
 ```bash
-php artisan serve      # http://localhost:8000
-npm run dev            # Vite
-php artisan horizon    # files d'attente Redis
-./vendor/bin/pest      # tests
-./vendor/bin/pint      # style
+php artisan serve          # http://localhost:8000
+npm run dev                # Vite
+php artisan queue:work     # INDISPENSABLE : voir ci-dessous
+php artisan schedule:work  # tâches planifiées
+./vendor/bin/pest          # tests
+./vendor/bin/pint          # style
 ```
+
+### Files d'attente : non optionnelles
+
+Les notifications et la génération des miniatures sont mises en file sur Redis.
+**Sans travailleur, rien ne part** : les courriels de confirmation restent en
+attente et le client ne reçoit jamais rien. En développement,
+`php artisan queue:work` suffit ; en production, Horizon (`php artisan horizon`)
+sous supervision.
+
+Le planificateur est tout aussi nécessaire : c'est lui qui libère les dates
+tenues sans paiement. En production, une entrée cron :
+
+```
+* * * * * cd /chemin/du/projet && php artisan schedule:run >> /dev/null 2>&1
+```
+
+En développement, `MAIL_MAILER=log` : les courriels sont écrits dans
+`storage/logs/laravel.log` au lieu d'être envoyés.
 
 ## Conventions
 

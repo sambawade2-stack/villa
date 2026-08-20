@@ -15,6 +15,11 @@ use App\Models\Commission;
 use App\Models\Property;
 use App\Models\Setting;
 use App\Models\User;
+use App\Notifications\BookingCancelled;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\BookingRequested;
+use App\Notifications\NewBookingForAdmin;
+use App\Services\Notifications\Notifier;
 use App\Services\Pricing\PricingService;
 use App\Support\BookingReference;
 use App\Support\Money;
@@ -33,7 +38,10 @@ class BookingService
     /** Code SQLSTATE d'une violation de contrainte d'exclusion PostgreSQL. */
     private const EXCLUSION_VIOLATION = '23P01';
 
-    public function __construct(private readonly PricingService $pricing) {}
+    public function __construct(
+        private readonly PricingService $pricing,
+        private readonly Notifier $notifier,
+    ) {}
 
     /**
      * Tient les dates le temps du paiement.
@@ -52,7 +60,7 @@ class BookingService
      */
     public function hold(Property $property, User $customer, string $checkin, string $checkout, int $guests): Booking
     {
-        return DB::transaction(function () use ($property, $customer, $checkin, $checkout, $guests) {
+        $booking = DB::transaction(function () use ($property, $customer, $checkin, $checkout, $guests) {
             // Relit la villa sous verrou : ses tarifs et sa capacité ne peuvent
             // plus changer entre la validation et l'écriture.
             /** @var Property $locked */
@@ -88,6 +96,13 @@ class BookingService
 
             return $booking;
         });
+
+        // Après la transaction : une notification n'a aucune raison de retenir
+        // un verrou de base, ni de faire échouer une réservation déjà écrite.
+        $this->notifier->to($customer, new BookingRequested($booking));
+        $this->notifier->toAdmins(new NewBookingForAdmin($booking));
+
+        return $booking;
     }
 
     /**
@@ -98,7 +113,7 @@ class BookingService
      */
     public function confirm(Booking $booking): Booking
     {
-        return DB::transaction(function () use ($booking) {
+        $confirmed = DB::transaction(function () use ($booking) {
             $this->assertTransition($booking, BookingStatus::Confirmed);
 
             $rate = (string) Setting::get('platform.commission_rate', 10);
@@ -128,6 +143,10 @@ class BookingService
 
             return $booking->fresh();
         });
+
+        $this->notifier->to($confirmed->user, new BookingConfirmed($confirmed));
+
+        return $confirmed;
     }
 
     /**
@@ -138,7 +157,7 @@ class BookingService
      */
     public function cancel(Booking $booking, ?User $by = null, ?string $reason = null): Booking
     {
-        return DB::transaction(function () use ($booking, $by, $reason) {
+        $cancelled = DB::transaction(function () use ($booking, $by, $reason) {
             $this->assertTransition($booking, BookingStatus::Cancelled);
 
             $booking->availabilityBlock()->delete();
@@ -154,6 +173,10 @@ class BookingService
 
             return $booking->fresh();
         });
+
+        $this->notifier->to($cancelled->user, new BookingCancelled($cancelled, $reason));
+
+        return $cancelled;
     }
 
     /** Clôt un séjour terminé, ce qui ouvre le droit à l'avis. */
