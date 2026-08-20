@@ -1,4 +1,4 @@
-<x-layouts.public :title="__('Finaliser la réservation — Petite Côte Villas')">
+<x-layouts.public noindex :title="__('Finaliser la réservation — Petite Côte Villas')">
     <div class="container-page py-9">
         <x-ui.breadcrumb :items="[
             ['label' => __('Accueil'), 'url' => route('home')],

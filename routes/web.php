@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ComplianceController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PropertyController as AdminPropertyController;
 use App\Http\Controllers\Admin\PropertyOwnerController as AdminOwnerController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\Public\DestinationController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PropertyController;
+use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +38,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 
 Route::get('/villas', [PropertyController::class, 'index'])->name('villas.index');
-Route::get('/villas/{property}', [PropertyController::class, 'show'])->name('villas.show');
+
+/*
+ * Adresse canonique de la fiche villa : /villas/{destination}/{villa}.
+ * Déclarée avant la forme à un segment, qui ne sert plus qu'à rediriger les
+ * anciens liens — un contenu ne doit exister qu'à une seule adresse.
+ */
+Route::get('/villas/{destination}/{property}', [PropertyController::class, 'show'])->name('villas.show');
+Route::get('/villas/{property}', [PropertyController::class, 'legacyShow'])->name('villas.legacy');
 
 Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
 Route::get('/destinations/{destination}', [DestinationController::class, 'show'])->name('destinations.show');
@@ -49,6 +58,8 @@ Route::post('/contact', [ContactController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('contact.store');
 
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+
 Route::get('/langue/{locale}', LocaleController::class)->name('locale.switch');
 
 /*
@@ -58,16 +69,6 @@ Route::get('/langue/{locale}', LocaleController::class)->name('locale.switch');
 */
 
 /*
- * Les notifications ne sont propres à aucun rôle : un administrateur reçoit les
- * siennes et doit pouvoir les lire. Ce groupe reste ouvert aux deux.
- */
-Route::middleware('auth')->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}', [NotificationController::class, 'read'])->name('notifications.read');
-    Route::post('/notifications', [NotificationController::class, 'readAll'])->name('notifications.read-all');
-});
-
-/*
  * Espace voyageur, fermé aux administrateurs.
  *
  * Un administrateur gère les réservations des clients depuis /admin ; il n'en a
@@ -75,6 +76,10 @@ Route::middleware('auth')->group(function () {
  * dans le chiffre d'affaires comme dans les commissions.
  */
 Route::middleware(['auth', 'customer'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('/notifications', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
     Route::get('/favoris', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favoris/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
@@ -165,6 +170,10 @@ Route::middleware(['auth', 'admin'])
 
         Route::get('/parametres', [AdminSettingController::class, 'edit'])->name('settings.edit');
         Route::put('/parametres', [AdminSettingController::class, 'update'])->name('settings.update');
+
+        Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}', [AdminNotificationController::class, 'read'])->name('notifications.read');
+        Route::post('/notifications', [AdminNotificationController::class, 'readAll'])->name('notifications.read-all');
 
         Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{conversation}', [AdminMessageController::class, 'show'])->name('messages.show');

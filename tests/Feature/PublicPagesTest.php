@@ -50,7 +50,7 @@ it('affiche une villa publiée', function () {
     ]);
     PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
 
-    $this->get(route('villas.show', $property))
+    $this->get(route('villas.show', [$property->destination, $property]))
         ->assertOk()
         ->assertSee($property->name)
         ->assertSee('Une villa avec vue sur la lagune.')
@@ -60,7 +60,7 @@ it('affiche une villa publiée', function () {
 it('renvoie 404 pour une villa non publiée', function (PropertyStatus $status) {
     $property = Property::factory()->create(['status' => $status]);
 
-    $this->get(route('villas.show', $property))->assertNotFound();
+    $this->get(route('villas.show', [$property->destination, $property]))->assertNotFound();
 })->with([
     'brouillon' => PropertyStatus::Draft,
     'dépubliée' => PropertyStatus::Unpublished,
@@ -77,7 +77,7 @@ it('n\'expose jamais l\'adresse interne ni les coordonnées exactes', function (
     ]);
     PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
 
-    $this->get(route('villas.show', $property))
+    $this->get(route('villas.show', [$property->destination, $property]))
         ->assertOk()
         ->assertDontSee('Lot 42 cité Malick Sy')
         ->assertDontSee('Code portail 4477')
@@ -90,7 +90,7 @@ it('ne publie que le prénom de l\'hôte', function () {
     $property->owner->update(['first_name' => 'Mamadou', 'last_name' => 'Ndiayefall', 'phone' => '+221770001122']);
     PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
 
-    $this->get(route('villas.show', $property))
+    $this->get(route('villas.show', [$property->destination, $property]))
         ->assertOk()
         ->assertSee('Mamadou')
         ->assertDontSee('Ndiayefall')

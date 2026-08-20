@@ -105,6 +105,7 @@ it('renvoie l\'administrateur vers son tableau de bord depuis l\'espace voyageur
     '/reservations',
     '/favoris',
     '/messages',
+    '/notifications',
 ]);
 
 it('empêche un administrateur de réserver, jusque dans le service', function () {
@@ -141,9 +142,15 @@ it('empêche un administrateur de mettre une villa en favori', function () {
 |--------------------------------------------------------------------------
 */
 
-it('laisse les deux rôles lire leurs propres notifications', function () {
+it('donne à chaque rôle son propre écran de notifications', function () {
+    // Elles portent des références de réservation et des montants : celles de
+    // l'administration n'ont rien à faire dans le décor du site public.
     $this->actingAs($this->customer)->get(route('notifications.index'))->assertOk();
-    $this->actingAs($this->admin)->get(route('notifications.index'))->assertOk();
+    $this->actingAs($this->customer)->get(route('admin.notifications.index'))->assertNotFound();
+
+    $this->actingAs($this->admin)->get(route('admin.notifications.index'))->assertOk();
+    $this->actingAs($this->admin)->get(route('notifications.index'))
+        ->assertRedirect(route('admin.dashboard'));
 });
 
 it('laisse les deux rôles parcourir le site public', function () {

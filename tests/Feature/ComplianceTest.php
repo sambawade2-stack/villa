@@ -166,7 +166,7 @@ it('n\'expose jamais le dossier sur la fiche publique', function () {
 
     $this->post(route('logout'));
 
-    $this->get(route('villas.show', $this->property))
+    $this->get(route('villas.show', [$this->property->destination, $this->property]))
         ->assertOk()
         ->assertDontSee('cni-mamadou-fall.pdf')
         ->assertDontSee('Note interne confidentielle')

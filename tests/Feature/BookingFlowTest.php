@@ -167,7 +167,7 @@ it('refuse une seconde réservation sur les mêmes dates, avec un message clair'
     ]);
 
     $this->actingAs(User::factory()->create())
-        ->from(route('villas.show', $this->property))
+        ->from(route('villas.show', [$this->property->destination, $this->property]))
         ->post(route('bookings.store', $this->property), [
             'checkin' => $this->from, 'checkout' => $this->to, 'guests' => 2,
         ])
@@ -192,7 +192,7 @@ it('libère les dates et prévient quand le délai est dépassé', function () {
 
     $this->actingAs($this->customer)
         ->get(route('bookings.checkout', $booking))
-        ->assertRedirect(route('villas.show', $this->property))
+        ->assertRedirect(route('villas.show', [$this->property->destination, $this->property]))
         ->assertSessionHas('error');
 
     expect($booking->fresh()->status)->toBe(BookingStatus::Cancelled)

@@ -48,7 +48,7 @@
                                     @endif
                                 </span>
                                 <div class="min-w-0">
-                                    <a href="{{ route('villas.show', $property) }}" class="font-medium text-navy-900 hover:underline">
+                                    <a href="{{ route('villas.show', [$property->destination, $property]) }}" class="font-medium text-navy-900 hover:underline">
                                         {{ $property->name }}
                                     </a>
                                     <p class="text-xs text-navy-400">{{ $property->neighborhood }}</p>

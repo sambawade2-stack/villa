@@ -21,7 +21,9 @@
     <div x-show="open" x-cloak x-transition.opacity
          class="absolute right-0 z-50 mt-1.5 w-40 overflow-hidden rounded-xl border border-stone-200 bg-white py-1 shadow-lifted">
         @foreach ($locales as $code => $label)
-            <a href="{{ route('locale.switch', $code) }}" hreflang="{{ $code }}"
+            {{-- On reste sur la page consultée, dans l'autre langue, plutôt que
+                 de renvoyer vers une route de bascule qui perdrait le contexte. --}}
+            <a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}" hreflang="{{ $code }}"
                @class([
                    'flex items-center gap-2.5 px-3 py-2 text-sm',
                    'bg-stone-50 font-semibold text-navy-900' => $code === $current,

@@ -72,7 +72,7 @@ class BookingController extends Controller
         if ($booking->holdHasExpired()) {
             $this->bookings->cancel($booking, reason: __('Délai de paiement dépassé.'));
 
-            return redirect()->route('villas.show', $booking->property)
+            return redirect()->route('villas.show', [$booking->property->destination, $booking->property])
                 ->with('error', __('Le délai de paiement est écoulé, les dates ont été libérées.'));
         }
 

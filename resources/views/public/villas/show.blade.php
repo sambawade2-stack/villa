@@ -50,7 +50,7 @@
             '@type' => 'LodgingBusiness',
             'name' => $property->name,
             'description' => (string) $property->short_description,
-            'url' => route('villas.show', $property),
+            'url' => route('villas.show', [$property->destination, $property]),
             'image' => $cover?->url('hero'),
             'address' => [
                 '@type' => 'PostalAddress',
@@ -320,7 +320,7 @@
                 @endif
 
                 {{-- Choix des dates : recharge la fiche avec le devis correspondant. --}}
-                <form method="GET" action="{{ route('villas.show', $property) }}" class="mt-4 flex flex-col gap-2">
+                <form method="GET" action="{{ route('villas.show', [$property->destination, $property]) }}" class="mt-4 flex flex-col gap-2">
                     <div class="grid grid-cols-2 gap-2">
                         <x-ui.input type="date" name="checkin" :label="__('Arrivée')"
                                     :min="now()->toDateString()"

@@ -44,7 +44,7 @@ it('ne bloque pas le jour du départ', function () {
         'reason' => BlockReason::Booking,
     ]);
 
-    $html = $this->get(route('villas.show', $this->property))->assertOk()->content();
+    $html = $this->get(route('villas.show', [$this->property->destination, $this->property]))->assertOk()->content();
     $blocked = blockedDaysIn($html, $start);
 
     // Du 10 au 13 inclus sont pris ; le 14, jour du départ, reste libre.
@@ -63,13 +63,13 @@ it('bloque toutes les nuits d\'un séjour d\'une seule nuit', function () {
         'reason' => BlockReason::Manual,
     ]);
 
-    $blocked = blockedDaysIn($this->get(route('villas.show', $this->property))->content(), $start);
+    $blocked = blockedDaysIn($this->get(route('villas.show', [$this->property->destination, $this->property]))->content(), $start);
 
     expect($blocked)->toContain(20)->and($blocked)->not->toContain(21);
 });
 
 it('n\'affiche aucun jour pris quand le calendrier est libre', function () {
-    $blocked = blockedDaysIn($this->get(route('villas.show', $this->property))->content(), Carbon::today());
+    $blocked = blockedDaysIn($this->get(route('villas.show', [$this->property->destination, $this->property]))->content(), Carbon::today());
 
     expect($blocked)->toBeEmpty();
 });

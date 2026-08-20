@@ -39,7 +39,9 @@
         </nav>
 
         <div class="flex items-center gap-2.5">
-            @auth
+            {{-- Les raccourcis de l'espace voyageur ne s'affichent que pour un
+                 voyageur : un administrateur a les siens dans /admin. --}}
+            @if (auth()->check() && ! auth()->user()->isAdmin())
                 @php
                     $unreadMessages = auth()->user()->conversations()->where('customer_unread_count', '>', 0)->count();
                     $unreadAlerts = auth()->user()->unreadNotifications()->count();
@@ -89,7 +91,7 @@
                         </span>
                     @endif
                 </a>
-            @endauth
+            @endif
 
             <x-ui.button :href="route('contact')" :variant="$transparent ? 'outline-light' : 'outline'" size="md"
                          class="hidden sm:inline-flex">

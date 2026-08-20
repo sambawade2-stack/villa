@@ -1,2 +1,20 @@
+# Petite Côte Villas
+
 User-agent: *
-Disallow:
+
+# Espaces privés : rien à explorer, rien à indexer.
+Disallow: /admin
+Disallow: /reservations
+Disallow: /favoris
+Disallow: /messages
+Disallow: /notifications
+Disallow: /connexion
+Disallow: /inscription
+Disallow: /webhooks
+
+# Le changement de langue est une action, pas une page.
+Disallow: /langue/
+
+Allow: /
+
+Sitemap: /sitemap.xml

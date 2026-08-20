@@ -4,7 +4,7 @@
     $awaitingPayment = $payment && ! $payment->status->isSettled() && $booking->isPending();
 @endphp
 
-<x-layouts.public :title="$booking->reference.' — Petite Côte Villas'">
+<x-layouts.public noindex :title="$booking->reference.' — Petite Côte Villas'">
     <div class="container-page py-9">
         <x-ui.breadcrumb :items="[
             ['label' => __('Accueil'), 'url' => route('home')],
@@ -68,7 +68,7 @@
                 </x-admin.panel>
 
                 <div class="flex flex-wrap gap-3">
-                    <x-ui.button :href="route('villas.show', $booking->property)" variant="outline">
+                    <x-ui.button :href="route('villas.show', [$booking->property->destination, $booking->property])" variant="outline">
                         {{ __('Revoir la villa') }}
                     </x-ui.button>
 

@@ -1,4 +1,4 @@
-<x-layouts.public :title="$conversation->subject.' — Petite Côte Villas'">
+<x-layouts.public noindex :title="$conversation->subject.' — Petite Côte Villas'">
     <div class="container-page py-9">
         <x-ui.breadcrumb :items="[
             ['label' => __('Accueil'), 'url' => route('home')],
@@ -12,7 +12,7 @@
                     <div>
                         <h1 class="text-lg font-semibold text-navy-900">{{ $conversation->subject }}</h1>
                         @if ($conversation->property)
-                            <a href="{{ route('villas.show', $conversation->property) }}"
+                            <a href="{{ route('villas.show', [$conversation->property->destination, $conversation->property]) }}"
                                class="text-sm text-navy-500 hover:text-navy-900 hover:underline">
                                 {{ $conversation->property->name }}
                             </a>
@@ -56,7 +56,7 @@
                 @if ($conversation->property)
                     <div class="rounded-card border border-stone-200 bg-white p-5">
                         <h2 class="text-sm font-semibold text-navy-900">{{ __('Villa concernée') }}</h2>
-                        <a href="{{ route('villas.show', $conversation->property) }}"
+                        <a href="{{ route('villas.show', [$conversation->property->destination, $conversation->property]) }}"
                            class="mt-2 block text-sm text-navy-600 hover:underline">
                             {{ $conversation->property->name }}
                         </a>

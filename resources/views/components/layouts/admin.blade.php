@@ -86,6 +86,19 @@
 
             <div class="ml-auto flex items-center gap-3">
                 @isset($actions) {{ $actions }} @endisset
+
+                @php $unreadAlerts = auth()->user()->unreadNotifications()->count(); @endphp
+                <a href="{{ route('admin.notifications.index') }}"
+                   class="relative rounded-lg p-2 text-navy-500 transition-colors hover:bg-stone-100 hover:text-navy-900"
+                   title="{{ __('Notifications') }}">
+                    <span class="sr-only">{{ __('Notifications') }}</span>
+                    <x-ui.icon name="info" class="size-5" />
+                    @if ($unreadAlerts > 0)
+                        <span class="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-amber-400 text-[0.6rem] font-bold text-navy-900 tabular">
+                            {{ $unreadAlerts > 9 ? '9+' : $unreadAlerts }}
+                        </span>
+                    @endif
+                </a>
                 <span class="hidden text-sm text-navy-500 sm:block">{{ auth()->user()->full_name }}</span>
             </div>
         </header>

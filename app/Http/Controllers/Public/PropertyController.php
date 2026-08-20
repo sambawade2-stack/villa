@@ -13,10 +13,19 @@ use App\Services\Pricing\PricingService;
 use App\Services\Pricing\Quote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
+    /** Ancienne adresse à un seul segment : redirection permanente. */
+    public function legacyShow(Property $property): RedirectResponse
+    {
+        abort_unless($property->isPublished(), 404);
+
+        return redirect()->route('villas.show', [$property->destination, $property], 301);
+    }
+
     public function index(SearchVillasRequest $request): View
     {
         $filters = $request->validated();
@@ -48,10 +57,22 @@ class PropertyController extends Controller
         ]);
     }
 
-    public function show(Request $request, Property $property, PricingService $pricing): View
+    /**
+     * Fiche villa, à l'adresse canonique /villas/{destination}/{villa}.
+     *
+     * La destination fait partie de l'URL parce qu'elle fait partie de la
+     * recherche : « villa Saly » est la requête réelle des voyageurs. Si elle ne
+     * correspond pas à la villa — lien ancien, villa déplacée — on redirige en
+     * 301 vers la bonne adresse plutôt que de servir deux URL pour une page.
+     */
+    public function show(Request $request, Destination $destination, Property $property, PricingService $pricing): View|RedirectResponse
     {
         // Une villa non publiée n'existe pas pour le public, même par accès direct.
         abort_unless($property->isPublished(), 404);
+
+        if ($property->destination_id !== $destination->id) {
+            return redirect()->route('villas.show', [$property->destination, $property], 301);
+        }
 
         $property->load([
             'destination',

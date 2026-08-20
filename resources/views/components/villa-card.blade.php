@@ -6,7 +6,7 @@
 
 <article {{ $attributes->merge(['class' => 'group flex flex-col']) }}>
     <div class="relative">
-        <a href="{{ route('villas.show', $property) }}"
+        <a href="{{ route('villas.show', [$property->destination, $property]) }}"
            class="card-hover block aspect-4/3 overflow-hidden rounded-card border border-transparent bg-stone-100">
             @if ($image)
                 <img src="{{ $image->url('card') }}"
@@ -35,7 +35,7 @@
 
     <div class="mt-3 flex flex-col gap-0.5">
         <h3 class="text-base font-semibold leading-snug text-navy-900">
-            <a href="{{ route('villas.show', $property) }}" class="hover:underline underline-offset-2">
+            <a href="{{ route('villas.show', [$property->destination, $property]) }}" class="hover:underline underline-offset-2">
                 {{ $property->name }}
             </a>
         </h3>
