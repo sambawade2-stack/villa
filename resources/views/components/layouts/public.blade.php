@@ -50,6 +50,8 @@
 
     <x-site.footer />
 
+    <x-whatsapp-float />
+
     @livewireScriptConfig
     @stack('scripts')
 </body>

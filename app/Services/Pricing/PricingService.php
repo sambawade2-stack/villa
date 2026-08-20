@@ -64,8 +64,13 @@ class PricingService
         $nights = [];
         $subtotal = 0;
 
-        // La borne haute est exclue : on ne facture pas la nuit du départ.
-        foreach ($start->daysUntil($end) as $day) {
+        /*
+         * Boucle explicite plutôt que Carbon::daysUntil() : cette méthode
+         * INCLUT la date de fin, ce qui facturerait la nuit du départ. Tout le
+         * modèle repose sur l'intervalle semi-ouvert [arrivée, départ), le même
+         * que celui de la contrainte PostgreSQL — la condition est donc `lt`.
+         */
+        for ($day = $start->copy(); $day->lt($end); $day->addDay()) {
             $rate = $this->nightlyRate($property, $day);
             $subtotal += $rate['amount']->amount;
 

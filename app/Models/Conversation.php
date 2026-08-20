@@ -27,7 +27,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $booking_id
  * @property string|null $subject
  * @property ConversationStatus $status
+ * @property string|null $whatsapp_number
  * @property Carbon|null $last_message_at
+ * @property Carbon|null $last_inbound_at
  * @property int $customer_unread_count
  * @property int $admin_unread_count
  * @property Carbon|null $created_at
@@ -45,7 +47,8 @@ class Conversation extends Model
 
     protected $fillable = [
         'user_id', 'property_id', 'booking_id', 'subject', 'status',
-        'last_message_at', 'customer_unread_count', 'admin_unread_count',
+        'whatsapp_number', 'last_message_at', 'last_inbound_at',
+        'customer_unread_count', 'admin_unread_count',
     ];
 
     protected function casts(): array
@@ -53,6 +56,7 @@ class Conversation extends Model
         return [
             'status' => ConversationStatus::class,
             'last_message_at' => 'datetime',
+            'last_inbound_at' => 'datetime',
         ];
     }
 
@@ -85,6 +89,17 @@ class Conversation extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', ConversationStatus::Open);
+    }
+
+    /**
+     * Un message WhatsApp libre n'est accepté par Meta que dans les 24 heures
+     * suivant le dernier message du client. Au-delà, seuls des modèles
+     * pré-approuvés passent.
+     */
+    public function whatsappWindowIsOpen(): bool
+    {
+        return $this->last_inbound_at !== null
+            && $this->last_inbound_at->greaterThan(now()->subHours(24));
     }
 
     public function scopeRecent(Builder $query): Builder

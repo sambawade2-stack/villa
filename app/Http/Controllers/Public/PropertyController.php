@@ -9,8 +9,11 @@ use App\Http\Requests\SearchVillasRequest;
 use App\Models\Amenity;
 use App\Models\Destination;
 use App\Models\Property;
+use App\Services\Pricing\PricingService;
+use App\Services\Pricing\Quote;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
@@ -45,7 +48,7 @@ class PropertyController extends Controller
         ]);
     }
 
-    public function show(Property $property): View
+    public function show(Request $request, Property $property, PricingService $pricing): View
     {
         // Une villa non publiée n'existe pas pour le public, même par accès direct.
         abort_unless($property->isPublished(), 404);
@@ -72,7 +75,40 @@ class PropertyController extends Controller
             ->limit(3)
             ->get();
 
-        return view('public.villas.show', compact('property', 'reviews', 'similar'));
+        [$quote, $requestedDates] = $this->quoteFor($request, $property, $pricing);
+
+        return view('public.villas.show', compact('property', 'reviews', 'similar', 'quote', 'requestedDates'));
+    }
+
+    /**
+     * Devis à afficher sur la fiche.
+     *
+     * Si le visiteur arrive avec des dates, on chiffre ces dates. Sinon on
+     * affiche un devis indicatif sur sept nuits, clairement annoncé comme tel :
+     * un total sans dates serait un chiffre sorti de nulle part.
+     *
+     * @return array{0: Quote|null, 1: bool}
+     */
+    private function quoteFor(Request $request, Property $property, PricingService $pricing): array
+    {
+        $checkin = $request->query('checkin');
+        $checkout = $request->query('checkout');
+        $guests = (int) $request->query('guests', 2);
+
+        if (is_string($checkin) && is_string($checkout)) {
+            try {
+                return [$pricing->quote($property, $checkin, $checkout, max(1, $guests)), true];
+            } catch (\Throwable) {
+                // Dates illisibles ou incohérentes dans l'URL : on retombe sur
+                // l'indicatif plutôt que de casser la page.
+            }
+        }
+
+        try {
+            return [$pricing->indicativeQuote($property), false];
+        } catch (\Throwable) {
+            return [null, false];
+        }
     }
 
     /**

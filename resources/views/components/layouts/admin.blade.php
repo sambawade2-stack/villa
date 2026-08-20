@@ -7,6 +7,14 @@
     $nav = [
         ['label' => __('Tableau de bord'), 'icon' => 'home', 'route' => 'admin.dashboard', 'url' => route('admin.dashboard')],
         ['label' => __('Villas'), 'icon' => 'key', 'route' => 'admin.villas.*', 'url' => route('admin.villas.index')],
+        ['label' => __('Réservations'), 'icon' => 'calendar', 'route' => 'admin.bookings.*', 'url' => route('admin.bookings.index')],
+        ['label' => __('Propriétaires'), 'icon' => 'users', 'route' => 'admin.owners.*', 'url' => route('admin.owners.index')],
+        ['label' => __('Clients'), 'icon' => 'users', 'route' => 'admin.customers.*', 'url' => route('admin.customers.index')],
+        ['label' => __('Messages'), 'icon' => 'message-circle', 'route' => 'admin.messages.*', 'url' => route('admin.messages.index'),
+         'badge' => \App\Models\Conversation::query()->where('admin_unread_count', '>', 0)->count()],
+        ['label' => __('Avis'), 'icon' => 'star', 'route' => 'admin.reviews.*', 'url' => route('admin.reviews.index'),
+         'badge' => \App\Models\Review::query()->pendingModeration()->count()],
+        ['label' => __('Paramètres'), 'icon' => 'shield', 'route' => 'admin.settings.*', 'url' => route('admin.settings.edit')],
     ];
 @endphp
 
@@ -42,6 +50,11 @@
                    ])>
                     <x-ui.icon :name="$item['icon']" class="size-5 shrink-0" />
                     {{ $item['label'] }}
+                    @if (($item['badge'] ?? 0) > 0)
+                        <span class="ml-auto inline-flex size-5 items-center justify-center rounded-full bg-amber-400 text-[0.65rem] font-bold text-navy-900 tabular">
+                            {{ $item['badge'] }}
+                        </span>
+                    @endif
                 </a>
             @endforeach
         </nav>

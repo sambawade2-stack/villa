@@ -65,13 +65,20 @@
     --text-title--line-height: 1.3;
     --text-title--letter-spacing: -0.015em;
 
-    /* Ombres discrètes : les cartes se détachent par leur bord, pas par leur poids. */
-    --shadow-card: 0 1px 2px rgb(18 37 63 / 0.04), 0 4px 14px -8px rgb(18 37 63 / 0.10);
-    --shadow-lifted: 0 2px 6px rgb(18 37 63 / 0.06), 0 14px 30px -14px rgb(18 37 63 / 0.16);
-    --shadow-panel: 0 18px 44px -18px rgb(11 24 43 / 0.28);
+    /*
+     * Ombres : trois plans seulement, très douces. Une carte se détache par son
+     * bord et son fond, l'ombre ne fait que la décoller du papier — c'est ce qui
+     * distingue une interface soignée d'une interface chargée.
+     */
+    --shadow-card: 0 1px 1px rgb(18 37 63 / 0.03), 0 3px 10px -6px rgb(18 37 63 / 0.10);
+    --shadow-lifted: 0 2px 4px rgb(18 37 63 / 0.05), 0 18px 34px -18px rgb(18 37 63 / 0.20);
+    --shadow-panel: 0 2px 6px rgb(11 24 43 / 0.06), 0 24px 56px -24px rgb(11 24 43 / 0.32);
 
-    --radius-card: 0.75rem;
-    --radius-block: 1rem;
+    --radius-card: 0.875rem;
+    --radius-block: 1.25rem;
+
+    /* Courbe d'accélération unique : tous les mouvements du site s'y accordent. */
+    --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 @layer base {
@@ -97,15 +104,25 @@
 
     h1, h2, h3, h4 {
         font-weight: 700;
-        letter-spacing: -0.015em;
+        letter-spacing: -0.02em;
         text-wrap: balance;
         color: var(--color-navy-900);
     }
 
+    /* Le corps de texte respire : 1.7 de hauteur de ligne, mesure limitée. */
+    p {
+        text-wrap: pretty;
+    }
+
+    /* Traits de séparation d'un cheveu, jamais de gris franc. */
+    hr {
+        border-color: color-mix(in oklab, var(--color-navy-900) 8%, transparent);
+    }
+
     :focus-visible {
         outline: 2px solid var(--color-navy-500);
-        outline-offset: 2px;
-        border-radius: 3px;
+        outline-offset: 3px;
+        border-radius: 4px;
     }
 
     ::selection {
@@ -121,6 +138,61 @@
 }
 
 @layer components {
+    /*
+     * Apparition au défilement.
+     *
+     * L'élément part de quelques pixels plus bas, légèrement transparent, et se
+     * pose quand il entre dans le champ. Discret par construction : 14 px de
+     * déplacement, pas davantage. Sans JavaScript, ou si le visiteur a demandé
+     * moins d'animations, tout est visible d'emblée — l'état par défaut de la
+     * classe est déjà l'état final.
+     */
+    .reveal {
+        opacity: 1;
+        transform: none;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .js .reveal {
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 0.6s var(--ease-soft), transform 0.6s var(--ease-soft);
+        }
+
+        .js .reveal.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Cascade légère entre éléments d'une même grille. */
+        .js .reveal[data-delay='1'] { transition-delay: 70ms; }
+        .js .reveal[data-delay='2'] { transition-delay: 140ms; }
+        .js .reveal[data-delay='3'] { transition-delay: 210ms; }
+    }
+
+    /* Carte qui se soulève au survol, sans bondir. */
+    .card-hover {
+        transition: box-shadow 0.35s var(--ease-soft), transform 0.35s var(--ease-soft),
+                    border-color 0.35s var(--ease-soft);
+    }
+
+    .card-hover:hover {
+        box-shadow: var(--shadow-lifted);
+        transform: translateY(-2px);
+        border-color: color-mix(in oklab, var(--color-navy-900) 14%, transparent);
+    }
+
+    /* Filet ambre sous un titre de section : l'accent de la marque, à dose homéopathique. */
+    .rule-accent::after {
+        content: '';
+        display: block;
+        width: 2.5rem;
+        height: 2px;
+        margin-top: 0.875rem;
+        border-radius: 999px;
+        background: var(--color-amber-400);
+    }
+
     /* Voile du hero : le texte se lit en bas à gauche, la photo respire à droite. */
     .scrim-hero {
         background:
@@ -131,6 +203,24 @@
     /* Voile bas des vignettes de destination. */
     .scrim-bottom {
         background: linear-gradient(to top, rgb(11 24 43 / 0.82) 0%, rgb(11 24 43 / 0.20) 55%, transparent 100%);
+    }
+}
+
+@layer components {
+    /*
+     * Respiration lente de l'image du hero : 24 secondes pour 4 % d'échelle.
+     * Assez lent pour ne pas se remarquer, assez présent pour que la page ne
+     * soit pas figée. Coupé si le visiteur a demandé moins d'animations.
+     */
+    @media (prefers-reduced-motion: no-preference) {
+        .hero-drift {
+            animation: hero-drift 24s var(--ease-soft) infinite alternate;
+        }
+    }
+
+    @keyframes hero-drift {
+        from { transform: scale(1.02) translate3d(0, 0, 0); }
+        to { transform: scale(1.06) translate3d(-1%, -1%, 0); }
     }
 }
 

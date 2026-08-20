@@ -21,7 +21,7 @@
     <div class="container-page flex h-[4.5rem] items-center justify-between gap-6">
         <x-site.logo :tone="$tone" />
 
-        <nav class="hidden items-center gap-7 xl:flex" aria-label="{{ __('Navigation principale') }}">
+        <nav class="hidden items-center gap-6 lg:flex" aria-label="{{ __('Navigation principale') }}">
             @foreach ($links as $link)
                 @php $active = request()->routeIs($link['route']); @endphp
                 <a href="{{ $link['url'] }}"
@@ -40,6 +40,22 @@
 
         <div class="flex items-center gap-2.5">
             @auth
+                @php $unreadMessages = auth()->user()->conversations()->where('customer_unread_count', '>', 0)->count(); @endphp
+                <a href="{{ route('messages.index') }}"
+                   @class([
+                       'relative hidden rounded-lg p-2 transition-colors sm:block',
+                       'text-white/80 hover:bg-white/10 hover:text-white' => $transparent,
+                       'text-navy-500 hover:bg-stone-100 hover:text-navy-900' => ! $transparent,
+                   ])>
+                    <span class="sr-only">{{ __('Mes messages') }}</span>
+                    <x-ui.icon name="message-circle" class="size-5" />
+                    @if ($unreadMessages > 0)
+                        <span class="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-amber-400 text-[0.6rem] font-bold text-navy-900 tabular">
+                            {{ $unreadMessages > 9 ? '9+' : $unreadMessages }}
+                        </span>
+                    @endif
+                </a>
+
                 <a href="{{ route('favorites.index') }}"
                    @class([
                        'relative hidden rounded-lg p-2 transition-colors sm:block',
@@ -65,7 +81,7 @@
             <x-site.locale-switcher :tone="$tone" class="hidden md:flex" />
 
             @auth
-                <form method="POST" action="{{ route('logout') }}" class="hidden xl:block">
+                <form method="POST" action="{{ route('logout') }}" class="hidden lg:block">
                     @csrf
                     <button type="submit"
                             @class([
@@ -79,7 +95,7 @@
             @else
                 <a href="{{ route('login') }}"
                    @class([
-                       'hidden text-sm font-medium transition-colors xl:block',
+                       'hidden text-sm font-medium transition-colors lg:block',
                        'text-white/75 hover:text-white' => $transparent,
                        'text-navy-500 hover:text-navy-900' => ! $transparent,
                    ])>
@@ -89,7 +105,7 @@
 
             <button type="button" @click="open = ! open" :aria-expanded="open" aria-controls="nav-mobile"
                     @class([
-                        'rounded-lg p-2 xl:hidden',
+                        'rounded-lg p-2 lg:hidden',
                         'text-white hover:bg-white/10' => $transparent,
                         'text-navy-700 hover:bg-stone-100' => ! $transparent,
                     ])>
@@ -101,7 +117,7 @@
     </div>
 
     <div id="nav-mobile" x-show="open" x-cloak x-collapse
-         class="border-t border-stone-200 bg-white xl:hidden">
+         class="border-t border-stone-200 bg-white lg:hidden">
         <nav class="container-page flex flex-col py-3" aria-label="{{ __('Navigation principale') }}">
             @foreach ($links as $link)
                 <a href="{{ $link['url'] }}"
@@ -114,6 +130,7 @@
                 <x-ui.button :href="route('contact')" variant="outline" size="sm">{{ __('Déposer ma villa') }}</x-ui.button>
                 @auth
                     <x-ui.button :href="route('favorites.index')" variant="ghost" size="sm" icon="heart">{{ __('Favoris') }}</x-ui.button>
+                    <x-ui.button :href="route('messages.index')" variant="ghost" size="sm" icon="message-circle">{{ __('Messages') }}</x-ui.button>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Déconnexion') }}</x-ui.button>

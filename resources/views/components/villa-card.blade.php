@@ -7,7 +7,7 @@
 <article {{ $attributes->merge(['class' => 'group flex flex-col']) }}>
     <div class="relative">
         <a href="{{ route('villas.show', $property) }}"
-           class="block aspect-4/3 overflow-hidden rounded-card bg-stone-100">
+           class="card-hover block aspect-4/3 overflow-hidden rounded-card border border-transparent bg-stone-100">
             @if ($image)
                 <img src="{{ $image->url('card') }}"
                      @if ($image->srcset('thumb', 'card', 'hero')) srcset="{{ $image->srcset('thumb', 'card', 'hero') }}" @endif
@@ -15,7 +15,7 @@
                      alt="{{ $image->alt?->get() ?? $property->name }}"
                      width="{{ $image->width }}" height="{{ $image->height }}"
                      loading="{{ $eager ? 'eager' : 'lazy' }}" decoding="async"
-                     class="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]">
+                     class="size-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:scale-[1.05]">
             @else
                 <span class="flex size-full items-center justify-center text-stone-400">
                     <x-ui.icon name="home" class="size-8" />

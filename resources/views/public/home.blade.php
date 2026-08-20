@@ -28,7 +28,7 @@
     <section class="relative isolate flex min-h-[34rem] items-end overflow-hidden bg-navy-900 lg:min-h-[40rem]">
         @if ($hero)
             <img src="{{ $hero->url('hero') }}" srcset="{{ $hero->srcset('card', 'hero') }}" sizes="100vw"
-                 alt="" fetchpriority="high" class="absolute inset-0 -z-10 size-full object-cover">
+                 alt="" fetchpriority="high" class="hero-drift absolute inset-0 -z-10 size-full object-cover">
         @endif
         <div class="scrim-hero absolute inset-0 -z-10"></div>
 
@@ -47,8 +47,8 @@
     </section>
 
     {{-- -------------------------------------------------------- Destinations --}}
-    <section class="container-page py-14 lg:py-16">
-        <x-section-header :title="__('Destinations populaires')">
+    <section class="container-page py-16 lg:py-24">
+        <x-section-header accent class="reveal" :title="__('Destinations populaires')">
             <x-slot:action>
                 <x-ui.button :href="route('destinations.index')" variant="ghost" size="sm" icon-after="arrow-right">
                     {{ __('Voir toutes') }}
@@ -59,6 +59,7 @@
         <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             @foreach ($destinations as $destination)
                 <x-destination-card
+                    class="reveal card-hover" :data-delay="min($loop->index, 3)"
                     :destination="$destination"
                     :count="$destination->villas_count"
                     :image="$destination->properties->first()?->primaryImage"
@@ -69,9 +70,9 @@
     </section>
 
     {{-- -------------------------------------------------------------- Villas --}}
-    <section class="border-y border-stone-200 bg-stone-50 py-14 lg:py-16">
+    <section class="border-y border-stone-200 bg-stone-50 py-16 lg:py-24">
         <div class="container-page">
-            <x-section-header :title="__('Villas coup de cœur')"
+            <x-section-header accent class="reveal" :title="__('Villas coup de cœur')"
                               :subtitle="__('Nos villas les plus appréciées par les voyageurs.')">
                 <x-slot:action>
                     <x-ui.button :href="route('villas.index')" variant="outline" size="sm" icon-after="arrow-right">
@@ -87,7 +88,8 @@
             @else
                 <div class="mt-7 grid gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     @foreach ($featured->take(4) as $property)
-                        <x-villa-card :property="$property" :eager="$loop->index < 4" />
+                        <x-villa-card :property="$property" :eager="$loop->index < 4"
+                                      class="reveal" :data-delay="min($loop->index, 3)" />
                     @endforeach
                 </div>
             @endif
@@ -95,13 +97,13 @@
     </section>
 
     {{-- ------------------------------------------------------ Pourquoi nous --}}
-    <section id="pourquoi-nous" class="container-page py-14 lg:py-16">
-        <x-section-header :title="__('Pourquoi passer par nous')"
+    <section id="pourquoi-nous" class="container-page py-16 lg:py-24">
+        <x-section-header accent class="reveal" :title="__('Pourquoi passer par nous')"
                           :subtitle="__('Une sélection tenue à la main, sur le terrain.')" />
 
         <div class="mt-8 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
             @foreach ($reasons as [$icon, $heading, $text])
-                <div class="flex flex-col gap-3">
+                <div class="reveal flex flex-col gap-3" data-delay="{{ min($loop->index, 3) }}">
                     <span class="flex size-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
                         <x-ui.icon :name="$icon" class="size-5" />
                     </span>
@@ -113,9 +115,9 @@
     </section>
 
     {{-- ------------------------------------------------------------ Services --}}
-    <section id="services" class="border-t border-stone-200 bg-stone-50 py-14 lg:py-16">
+    <section id="services" class="border-t border-stone-200 bg-stone-50 py-16 lg:py-24">
         <div class="container-page">
-            <x-section-header :title="__('Services à la carte')"
+            <x-section-header accent class="reveal" :title="__('Services à la carte')"
                               :subtitle="__('Organisés avec des prestataires locaux, avant ou pendant votre séjour.')">
                 <x-slot:action>
                     <x-ui.button :href="route('services')" variant="outline" size="sm" icon-after="arrow-right">
@@ -126,7 +128,7 @@
 
             <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($services as [$icon, $heading, $text])
-                    <div class="flex gap-4 rounded-card border border-stone-200 bg-white p-5">
+                    <div class="reveal card-hover flex gap-4 rounded-card border border-stone-200 bg-white p-5" data-delay="{{ min($loop->index, 3) }}">
                         <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-navy-50 text-navy-600">
                             <x-ui.icon :name="$icon" class="size-5" />
                         </span>
@@ -141,8 +143,8 @@
     </section>
 
     {{-- ------------------------------------------------------ CTA propriétaire --}}
-    <section id="proprietaires" class="container-page py-14 lg:py-16">
-        <div class="overflow-hidden rounded-block bg-navy-900 px-6 py-11 sm:px-10 lg:px-14">
+    <section id="proprietaires" class="container-page py-16 lg:py-24">
+        <div class="reveal overflow-hidden rounded-block bg-navy-900 px-6 py-12 sm:px-10 lg:px-16 lg:py-14">
             <div class="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
                 <div class="max-w-2xl">
                     <h2 class="text-2xl text-white lg:text-display">{{ __('Vous possédez une villa ?') }}</h2>

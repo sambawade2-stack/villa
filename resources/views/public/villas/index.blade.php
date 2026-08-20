@@ -164,7 +164,8 @@
                 @else
                     <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
                         @foreach ($properties as $property)
-                            <x-villa-card :property="$property" :eager="$loop->index < 3" />
+                            <x-villa-card :property="$property" :eager="$loop->index < 3"
+                            class="reveal" :data-delay="min($loop->index, 3)" />
                         @endforeach
                     </div>
 

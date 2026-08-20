@@ -7,7 +7,22 @@
 ])
 
 @php
-    $base = 'inline-flex items-center justify-center gap-2 font-medium rounded-lg '
+    /*
+     * Le composant impose `inline-flex`, mais un appelant peut vouloir masquer
+     * le bouton à certaines largeurs (« hidden sm:inline-flex »). Or l'ordre des
+     * classes dans l'attribut ne départage rien : c'est l'ordre dans la feuille
+     * de styles qui tranche, et `inline-flex` y gagnait — le bouton restait
+     * visible sur mobile. On retire donc `inline-flex` de la base dès que
+     * l'appelant fournit lui-même une utilitaire d'affichage.
+     */
+    $callerClasses = (string) $attributes->get('class', '');
+    $callerSetsDisplay = (bool) preg_match(
+        '/(^|\s)(\w+:)*(hidden|block|inline|inline-block|flex|inline-flex|grid|contents)(\s|$)/',
+        $callerClasses
+    );
+
+    $base = ($callerSetsDisplay ? '' : 'inline-flex ')
+          . 'items-center justify-center gap-2 font-medium rounded-lg '
           . 'transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap';
 
     $variants = [

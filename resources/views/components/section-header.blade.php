@@ -1,10 +1,10 @@
-@props(['title', 'subtitle' => null])
+@props(['title', 'subtitle' => null, 'accent' => false])
 
 <div {{ $attributes->merge(['class' => 'flex flex-wrap items-end justify-between gap-4']) }}>
     <div>
-        <h2 class="text-2xl text-navy-900 lg:text-display">{{ $title }}</h2>
+        <h2 @class(['text-2xl text-navy-900 lg:text-display', 'rule-accent' => $accent])>{{ $title }}</h2>
         @if ($subtitle)
-            <p class="mt-1.5 text-sm text-navy-500">{{ $subtitle }}</p>
+            <p class="mt-3 text-sm text-navy-500">{{ $subtitle }}</p>
         @endif
     </div>
 

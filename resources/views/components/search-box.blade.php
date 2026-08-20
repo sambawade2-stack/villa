@@ -71,8 +71,10 @@
             </div>
         </div>
 
-        <div class="p-1.5">
-            <x-ui.button type="submit" size="lg" class="h-full w-full px-8">
+        {{-- Entre 640 et 1024 px la grille est à deux colonnes : le bouton prend
+             toute la largeur plutôt que de laisser une demi-cellule vide. --}}
+        <div class="p-1.5 sm:col-span-2 lg:col-span-1">
+            <x-ui.button type="submit" size="lg" class="flex h-full w-full px-8">
                 {{ __('Rechercher') }}
             </x-ui.button>
         </div>

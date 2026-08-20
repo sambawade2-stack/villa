@@ -12,9 +12,14 @@
         ->whereDate('ends_on', '>=', $start->toDateString())
         ->whereDate('starts_on', '<=', $end->toDateString())
         ->get(['starts_on', 'ends_on']) as $block) {
-        // La borne haute est exclue : le jour du départ reste réservable.
-        foreach (Carbon::parse($block->starts_on)->daysUntil($block->ends_on) as $day) {
+        // Boucle explicite : Carbon::daysUntil() inclut la date de fin et
+        // marquerait le jour du départ comme pris, alors qu'il est réservable.
+        $day = Carbon::parse($block->starts_on);
+        $stop = Carbon::parse($block->ends_on);
+
+        while ($day->lt($stop)) {
             $blocked[$day->toDateString()] = true;
+            $day->addDay();
         }
     }
 

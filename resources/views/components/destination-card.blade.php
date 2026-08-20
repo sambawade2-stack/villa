@@ -8,7 +8,7 @@
              @if ($image->srcset('thumb', 'card')) srcset="{{ $image->srcset('thumb', 'card') }}" @endif
              sizes="(min-width: 1024px) 16vw, (min-width: 640px) 30vw, 45vw"
              alt="" loading="{{ $eager ? 'eager' : 'lazy' }}" decoding="async"
-             class="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.06]">
+             class="absolute inset-0 size-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:scale-[1.07]">
     @endif
 
     <div class="scrim-bottom absolute inset-0"></div>
