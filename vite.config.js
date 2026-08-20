@@ -8,9 +8,10 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
+            // Polices auto-hébergées : aucune requête vers un CDN externe.
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('DM Sans', {
+                    weights: [400, 500, 600, 700],
                 }),
             ],
         }),

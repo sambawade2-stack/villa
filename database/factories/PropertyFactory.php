@@ -74,7 +74,9 @@ class PropertyFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'status' => PropertyStatus::Published,
             'published_at' => now()->subDays(fake()->numberBetween(1, 200)),
-            'is_verified' => true,
+            // is_verified n'est pas posé ici : il découle du dossier de
+            // conformité, via ComplianceService::syncPropertyVerification().
+            'is_verified' => false,
             'approx_latitude' => round((float) $attributes['latitude'] + fake()->randomFloat(4, -0.004, 0.004), 7),
             'approx_longitude' => round((float) $attributes['longitude'] + fake()->randomFloat(4, -0.004, 0.004), 7),
         ]);

@@ -7,6 +7,8 @@ namespace Database\Seeders;
 use App\Enums\BlockReason;
 use App\Enums\BookingStatus;
 use App\Enums\CommissionStatus;
+use App\Enums\ComplianceItem;
+use App\Enums\ComplianceStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PropertyStatus;
 use App\Enums\ReviewStatus;
@@ -25,7 +27,9 @@ use App\Models\PropertyOwner;
 use App\Models\Review;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Compliance\ComplianceService;
 use App\Support\Money;
+use Database\Seeders\Support\DemoContent;
 use Database\Seeders\Support\DemoImageFactory;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Seeder;
@@ -142,10 +146,23 @@ class DemoSeeder extends Seeder
         foreach ($plan as $i => $status) {
             $destination = $destinations[$i % $destinations->count()];
 
-            $factory = Property::factory()->state([
+            $name = DemoContent::NAMES[$i];
+            $quarters = DemoContent::NEIGHBOURHOODS[$destination->slug];
+            $neighbourhood = $quarters[$i % count($quarters)];
+            $city = (string) $destination->name->get('fr');
+
+            $factory = Property::factory()->state(fn (array $attributes) => [
                 'property_owner_id' => $owners[$i % $owners->count()]->id,
                 'destination_id' => $destination->id,
                 'is_featured' => $i < 4,
+                'name' => $name,
+                'slug' => Str::slug($name),
+                'neighborhood' => $neighbourhood,
+                'description' => DemoContent::description(
+                    $name, $city, $neighbourhood,
+                    (int) $attributes['bedrooms'], (int) $attributes['capacity'],
+                ),
+                'short_description' => DemoContent::shortDescription($city, $neighbourhood, (int) $attributes['bedrooms']),
             ]);
 
             $property = $status === PropertyStatus::Published
@@ -153,13 +170,14 @@ class DemoSeeder extends Seeder
                 : $factory->create(['status' => $status]);
 
             $property->update([
-                'meta_title' => "{$property->name} — location de villa à {$destination->name->get('fr')}",
+                'meta_title' => "{$property->name} — location de villa à {$city}",
                 'meta_description' => Str::limit((string) $property->short_description->get('fr'), 155),
             ]);
 
             $this->attachImages($property, $status === PropertyStatus::Draft ? 2 : 4);
             $this->attachAmenities($property, $amenities);
             $this->attachSeasonalPricing($property);
+            $this->buildComplianceFile($property, $i, $status);
 
             $properties->push($property);
         }
@@ -167,6 +185,50 @@ class DemoSeeder extends Seeder
         $this->note("  {$properties->count()} villas (14 publiées)");
 
         return $properties;
+    }
+
+    /**
+     * Constitue un dossier de conformité de démonstration.
+     *
+     * Aucun fichier n'est déposé : les documents de conformité sont des pièces
+     * d'identité et des titres de propriété, il n'y a rien de crédible à
+     * fabriquer ici. Seuls les statuts sont renseignés, ce qui suffit à
+     * exercer la mécanique du badge « Villa vérifiée ».
+     */
+    private function buildComplianceFile(Property $property, int $index, PropertyStatus $status): void
+    {
+        $compliance = app(ComplianceService::class);
+        $compliance->ensureChecklist($property);
+
+        // Un brouillon n'a pas encore de dossier : on le laisse vide.
+        if ($status === PropertyStatus::Draft) {
+            return;
+        }
+
+        foreach ($property->complianceChecks()->get() as $check) {
+            $itemStatus = match (true) {
+                // Deux villas sur dix gardent une pièce en attente, une autre
+                // une pièce refusée : le tableau de bord a ainsi de quoi alerter.
+                $index % 7 === 3 && $check->item === ComplianceItem::BusinessRegistration => ComplianceStatus::Provided,
+                $index % 9 === 5 && $check->item === ComplianceItem::OwnershipProof => ComplianceStatus::Rejected,
+                $check->item->isConditional() && $index % 3 === 0 => ComplianceStatus::NotApplicable,
+                default => ComplianceStatus::Verified,
+            };
+
+            $check->forceFill([
+                'status' => $itemStatus,
+                'reference' => $check->item->requiresDocument() ? 'DEMO-'.Str::upper(Str::random(8)) : null,
+                'issued_on' => $check->item->canExpire() ? now()->subMonths(random_int(6, 30)) : null,
+                'expires_on' => $check->item->canExpire() ? now()->addMonths(random_int(4, 36)) : null,
+                'verified_at' => $itemStatus === ComplianceStatus::Verified ? now()->subDays(random_int(5, 200)) : null,
+                'notes' => $itemStatus === ComplianceStatus::Rejected
+                    ? 'Document illisible, à redemander au propriétaire.'
+                    : null,
+            ])->save();
+        }
+
+        // Le badge public découle du dossier, jamais d'un réglage manuel.
+        $compliance->syncPropertyVerification($property);
     }
 
     private function attachImages(Property $property, int $count): void

@@ -205,6 +205,19 @@ class Property extends Model
         return $this->reviews()->approved();
     }
 
+    /**
+     * Dossier de conformité.
+     *
+     * Volontairement absent de toute sérialisation publique : les pièces
+     * référencées sont des documents d'identité et des titres de propriété.
+     *
+     * @return HasMany<ComplianceCheck, $this>
+     */
+    public function complianceChecks(): HasMany
+    {
+        return $this->hasMany(ComplianceCheck::class);
+    }
+
     /** @return HasMany<Favorite, $this> */
     public function favorites(): HasMany
     {

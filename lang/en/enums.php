@@ -80,4 +80,24 @@ return [
         'closed' => 'Closed',
     ],
 
+    'compliance_item' => [
+        'owner_identity' => 'Owner identity',
+        'ownership_proof' => 'Proof of ownership / right to operate',
+        'business_registration' => 'Trade register or operator details',
+        'tourism_licence' => 'Tourism licence',
+        'operating_permit' => 'Operating permit',
+        'address_verified' => 'Address verified',
+        'photos_verified' => 'Photos verified',
+        'rental_terms' => 'Rental terms',
+    ],
+
+    'compliance_status' => [
+        'pending' => 'Outstanding',
+        'provided' => 'Submitted, awaiting review',
+        'verified' => 'Verified',
+        'not_applicable' => 'Not applicable',
+        'rejected' => 'Rejected',
+        'expired' => 'Expired',
+    ],
+
 ];

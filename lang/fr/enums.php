@@ -80,4 +80,24 @@ return [
         'closed' => 'Fermée',
     ],
 
+    'compliance_item' => [
+        'owner_identity' => 'Identité du propriétaire',
+        'ownership_proof' => 'Justificatif de propriété / droit d\'exploitation',
+        'business_registration' => 'RCCM ou informations de l\'exploitant',
+        'tourism_licence' => 'Agrément touristique',
+        'operating_permit' => 'Autorisation d\'exploitation',
+        'address_verified' => 'Adresse vérifiée',
+        'photos_verified' => 'Photos vérifiées',
+        'rental_terms' => 'Conditions de location',
+    ],
+
+    'compliance_status' => [
+        'pending' => 'À fournir',
+        'provided' => 'Déposé, à contrôler',
+        'verified' => 'Vérifié',
+        'not_applicable' => 'Sans objet',
+        'rejected' => 'Refusé',
+        'expired' => 'Périmé',
+    ],
+
 ];

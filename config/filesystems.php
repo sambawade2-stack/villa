@@ -91,6 +91,25 @@ return [
             'report' => true,
         ],
 
+        /*
+         * Documents de conformité : pièces d'identité, titres de propriété,
+         * RCCM, agréments.
+         *
+         * Disque PRIVÉ. La racine se trouve sous storage/app/private, hors de
+         * toute arborescence servie par le serveur web, et n'est jamais liée
+         * dans public/. Ces fichiers ne sortent que par la route
+         * d'administration, qui les diffuse en flux après contrôle des droits :
+         * il n'existe aucune URL, même devinable, vers un de ces documents.
+         */
+        'compliance' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/compliance'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
     ],
 
     /*
