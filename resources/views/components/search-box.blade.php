@@ -1,7 +1,7 @@
 @props(['destinations' => null, 'variant' => 'hero'])
 
 @php
-    $destinations ??= \App\Models\Destination::query()->active()->ordered()->get();
+    $destinations ??= \App\Support\CatalogCache::destinations();
     $today = now()->toDateString();
 
     // Le champ, dans la charte : intitulé discret au-dessus, valeur en dessous,

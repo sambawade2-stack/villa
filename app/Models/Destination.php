@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\TranslatableCast;
+use App\Support\CatalogCache;
 use App\Support\Translated;
 use Database\Factories\DestinationFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -59,6 +60,13 @@ class Destination extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    protected static function booted(): void
+    {
+        // Le cache du catalogue tombe dès qu'une destination bouge.
+        static::saved(fn () => CatalogCache::flush());
+        static::deleted(fn () => CatalogCache::flush());
     }
 
     /** @return HasMany<Property, $this> */

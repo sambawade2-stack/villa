@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Pricing;
 
+use App\Models\PricingRule;
 use App\Models\Property;
 use App\Models\Setting;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
 /**
@@ -27,13 +29,18 @@ class PricingService
      *   2. tarif week-end, pour les nuits du vendredi et du samedi ;
      *   3. tarif de base.
      *
+     * `$rules` permet de passer les règles déjà chargées. Sans ce paramètre,
+     * un devis de sept nuits déclenchait sept requêtes identiques — un N+1
+     * discret, invisible tant qu'on ne compte pas les requêtes.
+     *
+     * @param  Collection<int, PricingRule>|null  $rules
      * @return array{amount: Money, source: string}
      */
-    public function nightlyRate(Property $property, Carbon $date): array
+    public function nightlyRate(Property $property, Carbon $date, ?Collection $rules = null): array
     {
-        $rule = $property->pricingRules()
-            ->covering($date->toDateString())
-            ->first();
+        $rule = $rules !== null
+            ? $this->ruleCovering($rules, $date)
+            : $property->pricingRules()->covering($date->toDateString())->first();
 
         if ($rule !== null) {
             return ['amount' => $rule->price_per_night, 'source' => $rule->label];
@@ -61,6 +68,14 @@ class PricingService
             throw new InvalidArgumentException('La date de départ doit suivre la date d\'arrivée.');
         }
 
+        // Toutes les règles de la période, en une requête. Elles sont ensuite
+        // départagées en mémoire, exactement comme le ferait le scope SQL.
+        $rules = $property->pricingRules()
+            ->overlapping($start->toDateString(), $end->toDateString())
+            ->orderByDesc('priority')
+            ->orderByDesc('id')
+            ->get();
+
         $nights = [];
         $subtotal = 0;
 
@@ -71,7 +86,7 @@ class PricingService
          * que celui de la contrainte PostgreSQL — la condition est donc `lt`.
          */
         for ($day = $start->copy(); $day->lt($end); $day->addDay()) {
-            $rate = $this->nightlyRate($property, $day);
+            $rate = $this->nightlyRate($property, $day, $rules);
             $subtotal += $rate['amount']->amount;
 
             $nights[] = [
@@ -98,6 +113,20 @@ class PricingService
             total: Money::sum($nightlySubtotal, $cleaning, $serviceFee),
             securityDeposit: $property->security_deposit ?? Money::zero(),
         );
+    }
+
+    /**
+     * La règle la plus prioritaire couvrant une date, parmi celles déjà chargées.
+     *
+     * `period` est un daterange semi-ouvert côté PostgreSQL : on reproduit ici
+     * la même inclusion — borne basse comprise, borne haute exclue.
+     *
+     * @param  Collection<int, PricingRule>  $rules
+     */
+    private function ruleCovering(Collection $rules, Carbon $date): ?PricingRule
+    {
+        return $rules->first(fn (PricingRule $rule) => $date->gte($rule->starts_on)
+            && $date->lt($rule->ends_on));
     }
 
     /**

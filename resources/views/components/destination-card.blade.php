@@ -1,11 +1,11 @@
-@props(['destination', 'count' => null, 'image' => null, 'eager' => false])
+@props(['destination', 'count' => null, 'imageUrl' => null, 'srcset' => null, 'eager' => false])
 
 <a href="{{ route('destinations.show', $destination) }}"
    {{ $attributes->merge(['class' => 'group relative flex aspect-4/3 flex-col justify-end overflow-hidden rounded-card bg-navy-800']) }}>
 
-    @if ($image)
-        <img src="{{ $image->url('card') }}"
-             @if ($image->srcset('thumb', 'card')) srcset="{{ $image->srcset('thumb', 'card') }}" @endif
+    @if ($imageUrl)
+        <img src="{{ $imageUrl }}"
+             @if ($srcset) srcset="{{ $srcset }}" @endif
              sizes="(min-width: 1024px) 16vw, (min-width: 640px) 30vw, 45vw"
              alt="" loading="{{ $eager ? 'eager' : 'lazy' }}" decoding="async"
              class="absolute inset-0 size-full object-cover transition-transform duration-[700ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:scale-[1.07]">

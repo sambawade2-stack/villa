@@ -8,6 +8,7 @@ use App\Casts\MoneyCast;
 use App\Casts\TranslatableCast;
 use App\Enums\PropertyStatus;
 use App\Enums\PropertyType;
+use App\Support\CatalogCache;
 use App\Support\Money;
 use App\Support\Translated;
 use Database\Factories\PropertyFactory;
@@ -222,6 +223,17 @@ class Property extends Model
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    protected static function booted(): void
+    {
+        /*
+         * Le nombre de villas par destination est affiché sur l'accueil et mis
+         * en cache : publier, dépublier ou supprimer une villa doit le faire
+         * tomber immédiatement.
+         */
+        static::saved(fn () => CatalogCache::flush());
+        static::deleted(fn () => CatalogCache::flush());
     }
 
     // ---------------------------------------------------------------- agrégats

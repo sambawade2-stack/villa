@@ -7,8 +7,11 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Models\Property;
+use App\Support\CatalogCache;
+use App\Support\DestinationSummary;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
@@ -24,28 +27,22 @@ class HomeController extends Controller
     /**
      * Destinations actives, avec le nombre de villas publiées et un visuel.
      *
-     * @return Collection<int, Destination>
+     * Passe par le cache : le comptage coûte une sous-requête par destination,
+     * pour une information qui ne change qu'à la publication d'une villa.
+     *
+     * @return Collection<int, DestinationSummary>
      */
     private function destinations(): Collection
     {
-        return Destination::query()
-            ->active()
-            ->ordered()
-            ->withCount(['properties as villas_count' => fn ($q) => $q->published()])
-            ->with(['properties' => fn ($q) => $q->published()
-                ->with('primaryImage')
-                ->latest('published_at')
-                ->limit(1),
-            ])
-            ->get();
+        return CatalogCache::destinationsWithCounts();
     }
 
     /**
      * Villas mises en avant, complétées par les mieux notées si besoin.
      *
-     * @return Collection<int, Property>
+     * @return EloquentCollection<int, Property>
      */
-    private function featured(): Collection
+    private function featured(): EloquentCollection
     {
         $query = fn () => Property::query()
             ->published()

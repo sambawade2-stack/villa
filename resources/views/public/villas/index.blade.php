@@ -26,7 +26,7 @@
                 {{ trans_choice(':count villa disponible|:count villas disponibles', $properties->total(), ['count' => $properties->total()]) }}
             </p>
 
-            <x-search-box :destinations="$destinations" compact class="mt-6 shadow-card" />
+            <x-search-box compact class="mt-6 shadow-card" />
         </div>
     </div>
 

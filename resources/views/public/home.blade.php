@@ -42,7 +42,7 @@
                 </p>
             </div>
 
-            <x-search-box :destinations="$destinations" class="mt-8 max-w-5xl" />
+            <x-search-box class="mt-8 max-w-5xl" />
         </div>
     </section>
 
@@ -57,12 +57,13 @@
         </x-section-header>
 
         <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            @foreach ($destinations as $destination)
+            @foreach ($destinations as $entry)
                 <x-destination-card
                     class="reveal card-hover" :data-delay="min($loop->index, 3)"
-                    :destination="$destination"
-                    :count="$destination->villas_count"
-                    :image="$destination->properties->first()?->primaryImage"
+                    :destination="$entry->destination"
+                    :count="$entry->count"
+                    :image-url="$entry->imageUrl"
+                    :srcset="$entry->srcset"
                     :eager="$loop->index < 3"
                 />
             @endforeach

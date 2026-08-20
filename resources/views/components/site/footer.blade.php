@@ -1,5 +1,5 @@
 @php
-    $destinations = \App\Models\Destination::query()->active()->ordered()->get();
+    $destinations = \App\Support\CatalogCache::destinations();
     $email = \App\Models\Setting::get('contact.email');
     $phone = \App\Models\Setting::get('contact.phone');
 @endphp
