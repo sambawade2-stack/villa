@@ -66,19 +66,21 @@ class DemoSeeder extends Seeder
 
     private function createAdmin(): User
     {
+        // Identifiants lus dans la configuration : un reseeding ne doit pas
+        // réécraser le compte réel de l'exploitant.
         $admin = User::updateOrCreate(
-            ['email' => 'admin@petitecotevillas.test'],
+            ['email' => config('platform.admin.email')],
             [
-                'first_name' => 'Aïssatou',
-                'last_name' => 'Diagne',
-                'password' => 'password',
+                'first_name' => config('platform.admin.first_name'),
+                'last_name' => config('platform.admin.last_name'),
+                'password' => config('platform.admin.password'),
                 'phone' => '+221 77 000 00 01',
                 'role' => UserRole::Admin,
                 'email_verified_at' => now(),
             ]
         );
 
-        $this->note('  administrateur : admin@petitecotevillas.test / password');
+        $this->note('  administrateur : '.config('platform.admin.email'));
 
         return $admin;
     }
@@ -87,18 +89,18 @@ class DemoSeeder extends Seeder
     private function createCustomers(): Collection
     {
         $demo = User::updateOrCreate(
-            ['email' => 'client@petitecotevillas.test'],
+            ['email' => config('platform.customer_demo.email')],
             [
                 'first_name' => 'Moussa',
                 'last_name' => 'Sarr',
-                'password' => 'password',
+                'password' => config('platform.customer_demo.password'),
                 'phone' => '+221 77 000 00 02',
                 'role' => UserRole::Customer,
                 'email_verified_at' => now(),
             ]
         );
 
-        $this->note('  client       : client@petitecotevillas.test / password');
+        $this->note('  client         : '.config('platform.customer_demo.email'));
 
         return User::factory()->count(11)->create()->prepend($demo);
     }
