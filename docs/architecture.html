@@ -256,7 +256,7 @@
 
 <header class="masthead">
   <div class="masthead-inner">
-    <p class="eyebrow">Petite Côte Villas · Étape 1 — Analyse</p>
+    <p class="eyebrow">Petite Côte Villas · Étapes 01–02 terminées</p>
     <h1>Architecture &amp; plan de construction</h1>
     <p class="standfirst">Marketplace de villas haut de gamme sur la Petite Côte sénégalaise. Administration centralisée par une seule personne, propriétaires gérés comme contacts internes, architecture ouverte sur un portail propriétaire en v2.</p>
     <div class="stamp">
@@ -305,29 +305,26 @@
             <tr><td>Composer</td><td class="mono">2.9.5</td><td><span class="chip ok">OK</span></td><td>Packagist joignable (HTTP 200)</td></tr>
             <tr><td>Node / npm</td><td class="mono">24.13.0 / 11.6.2</td><td><span class="chip ok">OK</span></td><td>Vite 7 + Tailwind 4</td></tr>
             <tr><td>Git</td><td class="mono">2.43.0</td><td><span class="chip ok">OK</span></td><td>Dépôt à initialiser</td></tr>
-            <tr><td>PostgreSQL</td><td class="mono">16.14 · 127.0.0.1:5432</td><td><span class="chip warn">Actif, accès à créer</span></td><td>Aucun rôle/mot de passe connu</td></tr>
+            <tr><td>PostgreSQL</td><td class="mono">16.14 · 127.0.0.1:5432</td><td><span class="chip ok">Connecté</span></td><td>Migrations Laravel passées</td></tr>
             <tr><td>Redis</td><td class="mono">7.0.15 · 127.0.0.1:6379</td><td><span class="chip ok">PONG</span></td><td>Cache, sessions, queues</td></tr>
             <tr><td>Docker</td><td class="mono">29.7.2</td><td><span class="chip ok">Sans sudo</span></td><td>Plan B pour la base</td></tr>
-            <tr><td>ext <code>pdo_pgsql</code></td><td class="mono">—</td><td><span class="chip crit">Manquant</span></td><td><strong>Bloquant :</strong> pas de connexion PostgreSQL</td></tr>
-            <tr><td>ext <code>bcmath</code></td><td class="mono">—</td><td><span class="chip warn">Manquant</span></td><td>Recommandé (arithmétique sûre)</td></tr>
-            <tr><td>ext <code>redis</code></td><td class="mono">—</td><td><span class="chip warn">Manquant</span></td><td>Contourné par <code>predis/predis</code></td></tr>
+            <tr><td>ext <code>pdo_pgsql</code> · <code>pgsql</code></td><td class="mono">8.3.6</td><td><span class="chip ok">Installé</span></td><td>Connexion PDO vérifiée en tant que rôle <code>villa</code></td></tr>
+            <tr><td>ext <code>bcmath</code></td><td class="mono">8.3.6</td><td><span class="chip ok">Installé</span></td><td>Arithmétique sûre</td></tr>
+            <tr><td>ext <code>redis</code></td><td class="mono">5.3.7</td><td><span class="chip ok">Installé</span></td><td><code>phpredis</code> natif — <code>predis</code> devenu inutile</td></tr>
+            <tr><td>Base <code>petite_cote_villas</code></td><td class="mono">+ <code>_test</code></td><td><span class="chip ok">Créées</span></td><td>Rôle <code>villa</code>, <code>btree_gist</code> actif sur les deux</td></tr>
             <tr><td>ext <code>imagick</code></td><td class="mono">—</td><td><span class="chip neutral">Manquant</span></td><td>Sans effet : <code>gd</code> suffit</td></tr>
             <tr><td>ext gd · intl · mbstring · zip · exif · sodium · curl</td><td class="mono">présentes</td><td><span class="chip ok">OK</span></td><td>Miniatures, i18n, uploads</td></tr>
           </tbody>
         </table>
       </div>
 
-      <div class="note stop">
-        <h4>Deux actions vous appartiennent — <code>sudo</code> exige un mot de passe et cette session n'est pas interactive</h4>
-        <p>Sans <code>pdo_pgsql</code>, aucune migration ne peut tourner. Il n'existe pas de contournement : même une base PostgreSQL en Docker se connecte via ce pilote.</p>
-        <pre><i># 1. pilotes PHP</i>
-sudo apt install -y php8.3-pgsql php8.3-bcmath php8.3-redis
-
-<i># 2. base + rôle + extension requise par la contrainte anti-double-réservation</i>
-sudo -u postgres psql -c "CREATE ROLE villa LOGIN PASSWORD '<b>votre_mot_de_passe</b>';"
-sudo -u postgres psql -c "CREATE DATABASE petite_cote_villas OWNER villa;"
-sudo -u postgres psql -d petite_cote_villas -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"</pre>
-        <p><code>btree_gist</code> n'est pas optionnel : c'est lui qui permet la contrainte d'exclusion PostgreSQL décrite en <a href="#booking">§06</a>, qui rend la double réservation <em>physiquement</em> impossible.</p>
+      <div class="note">
+        <h4>Prérequis levés le 20 août 2026</h4>
+        <p>Les trois extensions PHP ont été installées, le rôle <code>villa</code> et les bases <code>petite_cote_villas</code> / <code>petite_cote_villas_test</code> créés, <code>btree_gist</code> activé sur les deux. Connexion PDO et <code>ext-redis</code> vérifiées depuis PHP, migrations Laravel passées sur PostgreSQL. <strong>Plus aucun blocage d'infrastructure.</strong></p>
+      </div>
+      <div class="note">
+        <h4>Conséquence sur les tests</h4>
+        <p>La suite de tests tourne sur <strong>PostgreSQL</strong>, pas sur SQLite en mémoire comme le fait Laravel par défaut. <code>daterange</code>, <code>EXCLUDE USING gist</code> et <code>jsonb</code> n'ont aucun équivalent SQLite : tester ailleurs que sur le moteur de production reviendrait à ne pas tester la garantie anti-double-réservation.</p>
       </div>
     </section>
 
@@ -792,9 +789,9 @@ owner_payout     900 000 FCFA   <i>base - commission, jamais recalculé</i></pre
           <tbody>
             <tr><td class="mono">laravel/framework ^13.26</td><td>socle</td><td>Dernière stable, compatible PHP 8.3.6</td></tr>
             <tr><td class="mono">livewire/livewire ^4.4</td><td>îlots interactifs</td><td>Filtres, calendrier, uploader, wizard</td></tr>
-            <tr><td class="mono">predis/predis</td><td>client Redis</td><td>Pur PHP — évite d'attendre <code>php8.3-redis</code>. Remplaçable par l'extension ensuite, sans changement de code</td></tr>
+            <tr><td class="mono">ext-redis (phpredis)</td><td>client Redis</td><td><span class="chip ok">Installé</span> — <code>predis</code> abandonné, l'extension native est plus rapide</td></tr>
             <tr><td class="mono">intervention/image ^3</td><td>miniatures</td><td>Pilote GD, déjà présent</td></tr>
-            <tr><td class="mono">laravel/breeze</td><td>auth (dev)</td><td>Stack Blade + Alpine + Tailwind, scaffolding supprimé après adaptation</td></tr>
+            <tr><td class="mono">— (authentification maison)</td><td>auth</td><td><strong>Changement par rapport au plan initial :</strong> Breeze écarté. Le squelette Laravel 13 fournit déjà Tailwind 4, Vite et les polices auto-hébergées ; le back-end d'auth est natif. Générer un scaffolding pour le réécrire aussitôt sur notre design system serait du travail perdu</td></tr>
             <tr><td class="mono">league/flysystem-aws-s3-v3</td><td>stockage prod</td><td>R2 / S3</td></tr>
             <tr><td class="mono">laravel/horizon</td><td>supervision des files</td><td>Redis déjà actif ; visibilité sur images, mails, expirations</td></tr>
             <tr><td class="mono">pestphp/pest ^4</td><td>tests</td><td>Syntaxe concise, couverture §33</td></tr>
@@ -827,7 +824,7 @@ owner_payout     900 000 FCFA   <i>base - commission, jamais recalculé</i></pre
           <thead><tr><th class="mono">#</th><th>Étape</th><th>Livrable vérifiable</th><th>Tests</th></tr></thead>
           <tbody>
             <tr><td class="mono">01</td><td>Analyse</td><td>Ce document</td><td><span class="chip ok">Fait</span></td></tr>
-            <tr><td class="mono">02</td><td>Initialisation</td><td>Laravel installé, <code>.env</code> PostgreSQL + Redis, Tailwind/Alpine/Livewire compilés, Breeze, Git initialisé, <code>php artisan serve</code> répond</td><td>smoke test</td></tr>
+            <tr><td class="mono">02</td><td>Initialisation</td><td>Laravel 13.26.1, <code>.env</code> PostgreSQL + Redis, disque <code>properties</code>, Livewire 4, Horizon, Pest, build Vite, Git initialisé</td><td><span class="chip ok">Fait</span></td></tr>
             <tr><td class="mono">03</td><td>Base de données</td><td>Toutes les migrations, contrainte <code>EXCLUDE</code>, modèles, relations, factories, seeders de démonstration</td><td>migration + relations</td></tr>
             <tr><td class="mono">04</td><td>Design system</td><td>Tokens navy/sable/doré, typographie, ~20 composants Blade, page de démonstration des composants</td><td>rendu</td></tr>
             <tr><td class="mono">05</td><td>Marketplace publique</td><td>Homepage, destinations, catalogue, filtres, tri, page villa</td><td>recherche, filtres, 404 sur villa non publiée</td></tr>
@@ -846,8 +843,7 @@ owner_payout     900 000 FCFA   <i>base - commission, jamais recalculé</i></pre
 
       <div class="note">
         <h4>Prochaine action</h4>
-        <p>L'étape 02 est bloquée sur l'installation de <code>php8.3-pgsql</code> et la création du rôle PostgreSQL — <a href="#env">commandes en §00</a>. Une fois ces deux commandes passées, indiquez-moi le mot de passe choisi pour le rôle <code>villa</code> et j'enchaîne l'initialisation complète.</p>
-        <p>Si vous préférez ne pas attendre, je peux démarrer l'étape 02 en configurant tout le projet <em>sauf</em> la connexion base — installation Laravel, Tailwind, Alpine, Livewire, Git, structure des dossiers — et brancher PostgreSQL dès que le pilote est disponible.</p>
+        <p>L'étape 03 démarre : migrations complètes, contrainte d'exclusion, modèles, relations, factories et seeders de démonstration. C'est l'étape qui fige le modèle de données — le bon moment pour signaler tout champ manquant dans le <a href="#data">§03</a>.</p>
       </div>
     </section>
 
