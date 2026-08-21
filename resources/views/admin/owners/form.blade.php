@@ -25,7 +25,7 @@
                        :subtitle="__('Jamais affichées sur le site public.')">
             <div class="flex flex-col gap-5 p-5">
                 <div class="flex flex-col gap-1.5">
-                    <label for="internal_address" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                    <label for="internal_address" class="field-label">
                         {{ __('Adresse') }}
                     </label>
                     <textarea id="internal_address" name="internal_address" rows="2" maxlength="500"
@@ -33,7 +33,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="internal_notes" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                    <label for="internal_notes" class="field-label">
                         {{ __('Notes') }}
                     </label>
                     <textarea id="internal_notes" name="internal_notes" rows="4" maxlength="4000"

@@ -81,7 +81,7 @@
             ] as $key => $label)
                 <button type="button" @click="tab = '{{ $key }}'"
                         :class="tab === '{{ $key }}' ? 'bg-navy-800 text-white' : 'text-navy-600 hover:bg-stone-100'"
-                        class="rounded-lg px-3.5 py-1.5 text-sm">
+                        class="rounded-lg px-3.5 py-1.5 text-sm font-semibold">
                     {{ $label }}
                     @if ($key === 'photos')
                         <span class="ml-1 text-xs opacity-70 tabular">{{ $property->images->count() }}</span>
@@ -223,7 +223,7 @@
                         @foreach ([['fr', __('Français')], ['en', __('Anglais')]] as [$locale, $label])
                             <div class="flex flex-col gap-4">
                                 <div class="flex flex-col gap-1.5">
-                                    <label for="short_{{ $locale }}" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                                    <label for="short_{{ $locale }}" class="field-label">
                                         {{ __('Accroche — :lang', ['lang' => $label]) }}
                                     </label>
                                     <textarea id="short_{{ $locale }}" name="short_description_{{ $locale }}" rows="2" maxlength="400"
@@ -231,7 +231,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-1.5">
-                                    <label for="desc_{{ $locale }}" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                                    <label for="desc_{{ $locale }}" class="field-label">
                                         {{ __('Description — :lang', ['lang' => $label]) }}
                                     </label>
                                     <textarea id="desc_{{ $locale }}" name="description_{{ $locale }}" rows="9" maxlength="8000"
@@ -261,7 +261,7 @@
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label for="internal_address" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                            <label for="internal_address" class="field-label">
                                 {{ __('Adresse exacte — interne') }}
                             </label>
                             <textarea id="internal_address" name="internal_address" rows="2" maxlength="500"
@@ -269,7 +269,7 @@
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label for="internal_notes" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                            <label for="internal_notes" class="field-label">
                                 {{ __('Notes internes') }}
                             </label>
                             <textarea id="internal_notes" name="internal_notes" rows="3" maxlength="4000"
@@ -366,7 +366,7 @@
                         <x-ui.input name="meta_title" :label="__('Titre pour les moteurs')" :value="old('meta_title', $property->meta_title)"
                                     maxlength="180" :hint="__('60 à 70 caractères se lisent entièrement dans les résultats.')" />
                         <div class="flex flex-col gap-1.5">
-                            <label for="meta_description" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                            <label for="meta_description" class="field-label">
                                 {{ __('Description pour les moteurs') }}
                             </label>
                             <textarea id="meta_description" name="meta_description" rows="3" maxlength="320"

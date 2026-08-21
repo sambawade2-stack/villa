@@ -14,7 +14,7 @@
 
 <div class="flex flex-col gap-1.5">
     @if ($label)
-        <label for="{{ $id }}" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+        <label for="{{ $id }}" class="field-label">
             {{ $label }}
         </label>
     @endif
@@ -30,7 +30,7 @@
             @if ($name) name="{{ $name }}" @endif
             @if ($error) aria-invalid="true" aria-describedby="{{ $id }}-error" @endif
             {{ $attributes->merge([
-                'class' => 'w-full rounded-xl border bg-white py-2.5 text-sm text-navy-900 '
+                'class' => 'w-full rounded-xl border bg-white py-2.5 text-sm font-medium text-navy-900 '
                     . 'placeholder:text-navy-300 transition-colors '
                     . ($icon ? 'pl-10 pr-3.5 ' : 'px-3.5 ')
                     . ($error ? 'border-danger-500' : 'border-stone-300 hover:border-stone-400 focus:border-navy-500'),

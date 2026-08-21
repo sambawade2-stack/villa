@@ -214,7 +214,7 @@
                             @endif
 
                             <div class="flex flex-col gap-1.5">
-                                <label for="notes-{{ $check->id }}" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                                <label for="notes-{{ $check->id }}" class="field-label">
                                     {{ __('Notes internes') }}
                                 </label>
                                 <textarea id="notes-{{ $check->id }}" name="notes" rows="2" maxlength="2000"

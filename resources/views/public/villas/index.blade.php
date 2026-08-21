@@ -68,7 +68,7 @@
                     @endif
 
                     <fieldset class="flex flex-col gap-3">
-                        <legend class="text-xs font-semibold uppercase tracking-wider text-navy-500">{{ __('Budget par nuit') }}</legend>
+                        <legend class="field-label">{{ __('Budget par nuit') }}</legend>
                         <div class="grid grid-cols-2 gap-2">
                             <x-ui.input type="number" name="price_min" :label="__('Minimum')" min="0" step="5000"
                                         placeholder="0" :value="$filters['price_min'] ?? null" />
@@ -95,7 +95,7 @@
                     </fieldset>
 
                     <fieldset class="flex flex-col gap-2.5">
-                        <legend class="mb-1 text-xs font-semibold uppercase tracking-wider text-navy-500">{{ __('Équipements') }}</legend>
+                        <legend class="mb-1 field-label">{{ __('Équipements') }}</legend>
                         @foreach ($amenities as $amenity)
                             <label class="flex cursor-pointer items-center gap-2.5 text-sm text-navy-700">
                                 <input type="checkbox" name="amenities[]" value="{{ $amenity->slug }}"

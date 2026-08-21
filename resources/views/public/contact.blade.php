@@ -57,7 +57,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1.5">
-                    <label for="message" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+                    <label for="message" class="field-label">
                         {{ __('Votre message') }}
                     </label>
                     <textarea id="message" name="message" rows="7" required minlength="20" maxlength="4000"

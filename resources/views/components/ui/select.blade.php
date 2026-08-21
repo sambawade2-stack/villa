@@ -12,7 +12,7 @@
 
 <div class="flex flex-col gap-1.5">
     @if ($label)
-        <label for="{{ $id }}" class="text-xs font-semibold uppercase tracking-wider text-navy-500">
+        <label for="{{ $id }}" class="field-label">
             {{ $label }}
         </label>
     @endif
@@ -26,7 +26,7 @@
             id="{{ $id }}"
             @if ($name) name="{{ $name }}" @endif
             {{ $attributes->merge([
-                'class' => 'w-full appearance-none rounded-xl border bg-white py-2.5 pr-10 text-sm text-navy-900 '
+                'class' => 'w-full appearance-none rounded-xl border bg-white py-2.5 pr-10 text-sm font-medium text-navy-900 '
                     . 'transition-colors '
                     . ($icon ? 'pl-10 ' : 'pl-3.5 ')
                     . ($error ? 'border-danger-500' : 'border-stone-300 hover:border-stone-400 focus:border-navy-500'),

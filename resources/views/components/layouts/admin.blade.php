@@ -82,7 +82,7 @@
                 <x-ui.icon name="menu" class="size-6" />
             </button>
 
-            <h1 class="min-w-0 truncate text-lg font-semibold text-navy-900">{{ $heading ?? $title }}</h1>
+            <h1 class="min-w-0 truncate text-lg font-bold tracking-tight text-navy-900">{{ $heading ?? $title }}</h1>
 
             <div class="ml-auto flex items-center gap-3">
                 @isset($actions) {{ $actions }} @endisset
