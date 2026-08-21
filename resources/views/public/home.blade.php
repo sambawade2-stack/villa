@@ -1,5 +1,15 @@
 @php
-    $hero = $featured->first()?->primaryImage;
+    /*
+     * Visuel de marque de la page d'accueil : une image fixe, pas la photo
+     * d'une villa au hasard. Contrairement au fond utilisé auparavant — la
+     * couverture de la première villa mise en avant, susceptible de changer
+     * à chaque publication — ce visuel est stable et choisi, à la manière
+     * d'une couverture de magazine plutôt que d'une fiche produit.
+     */
+    $heroImage = [
+        'src' => asset('images/hero-hero.webp'),
+        'srcset' => asset('images/hero-card.webp').' 800w, '.asset('images/hero-hero.webp').' 1536w',
+    ];
 
     $services = [
         ['plane', __('Transfert aéroport'), __('Accueil à Blaise-Diagne et transfert privé jusqu\'à votre villa.')],
@@ -21,15 +31,13 @@
 <x-layouts.public
     :title="__('Location de villas sur la Petite Côte du Sénégal — Petite Côte Villas')"
     :description="__('Découvrez et réservez des villas soigneusement sélectionnées à Saly, Mbour, Ngaparou, Somone, Popenguine et Joal-Fadiouth.')"
-    :og-image="$hero?->url('hero')"
+    :og-image="$heroImage['src']"
     transparent-nav
 >
     {{-- ---------------------------------------------------------------- Hero --}}
     <section class="relative isolate flex min-h-[34rem] items-end overflow-hidden bg-navy-900 lg:min-h-[40rem]">
-        @if ($hero)
-            <img src="{{ $hero->url('hero') }}" srcset="{{ $hero->srcset('card', 'hero') }}" sizes="100vw"
-                 alt="" fetchpriority="high" class="hero-drift absolute inset-0 -z-10 size-full object-cover">
-        @endif
+        <img src="{{ $heroImage['src'] }}" srcset="{{ $heroImage['srcset'] }}" sizes="100vw"
+             alt="" fetchpriority="high" class="hero-drift absolute inset-0 -z-10 size-full object-cover">
         <div class="scrim-hero absolute inset-0 -z-10"></div>
 
         <div class="container-page w-full pb-8 pt-32 lg:pb-12">
