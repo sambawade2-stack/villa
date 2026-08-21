@@ -82,7 +82,11 @@ class PropertyController extends Controller
 
     public function edit(Property $property): View
     {
-        $property->load(['amenities', 'images', 'destination', 'owner']);
+        $property->load([
+            'amenities', 'images', 'destination', 'owner',
+            'pricingRules' => fn ($q) => $q->orderBy('starts_on'),
+            'availabilityBlocks' => fn ($q) => $q->orderBy('starts_on'),
+        ]);
 
         return view('admin.villas.edit', [
             'property' => $property,

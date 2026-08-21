@@ -302,10 +302,28 @@
         <aside class="lg:sticky lg:top-24 lg:self-start">
             <div class="rounded-card border border-stone-200 bg-white p-5 shadow-card">
                 <p class="text-navy-900">
-                    <span class="text-2xl font-bold tabular">{{ $property->base_price->format(withCurrency: false) }}</span>
+                    {{--
+                        Le prix en tête reflète le tarif réellement appliqué sur les
+                        dates du devis (moyenne des nuits, tarifs de saison compris),
+                        jamais le tarif de base brut : afficher 450 000 en titre puis
+                        360 000 dans le détail — parce qu'un tarif de saison couvre la
+                        période — ferait deux chiffres qui ne se recoupent jamais aux
+                        yeux du client.
+                    --}}
+                    <span class="text-2xl font-bold tabular">
+                        {{ ($quote?->averageNightly() ?? $property->base_price)->format(withCurrency: false) }}
+                    </span>
                     <span class="font-medium">FCFA</span>
                     <span class="text-sm text-navy-400">{{ __('/ nuit') }}</span>
                 </p>
+
+                @if ($quote && $quote->averageNightly()->amount !== $property->base_price->amount)
+                    <p class="mt-0.5 text-xs text-navy-400">
+                        {{ __('Tarif moyen pour ces dates — le prix de base est de :base FCFA / nuit.', [
+                            'base' => $property->base_price->format(withCurrency: false),
+                        ]) }}
+                    </p>
+                @endif
 
                 @if ($quote)
                     <p class="mt-1 text-sm text-navy-500">

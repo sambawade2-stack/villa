@@ -23,6 +23,7 @@ use App\Services\Notifications\Notifier;
 use App\Services\Pricing\PricingService;
 use App\Support\BookingReference;
 use App\Support\Money;
+use App\Support\PostgresErrors;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -30,14 +31,14 @@ use Illuminate\Support\Facades\DB;
 /**
  * Cycle de vie d'une réservation.
  *
- * Point unique d'écriture : rien d'autre dans l'application n'a le droit de
- * changer le statut d'une réservation ni de poser un blocage de calendrier.
+ * Point unique d'écriture pour le statut d'une réservation et pour les
+ * blocages de calendrier qui en naissent (reason = booking). Les blocages
+ * posés à la main par l'administrateur — entretien, indisponibilité —
+ * relèvent d'AvailabilityService, qui partage la même contrainte
+ * d'exclusion mais n'a rien à voir avec le cycle de vie d'une réservation.
  */
 class BookingService
 {
-    /** Code SQLSTATE d'une violation de contrainte d'exclusion PostgreSQL. */
-    private const EXCLUSION_VIOLATION = '23P01';
-
     public function __construct(
         private readonly PricingService $pricing,
         private readonly Notifier $notifier,
@@ -302,10 +303,10 @@ class BookingService
                 'booking_id' => $booking->id,
             ]);
         } catch (QueryException $e) {
-            // 23P01 : la contrainte d'exclusion a refusé le chevauchement.
-            // Toute autre erreur SQL remonte telle quelle — la masquer
-            // transformerait un incident technique en « dates indisponibles ».
-            if (($e->errorInfo[0] ?? null) === self::EXCLUSION_VIOLATION) {
+            // La contrainte d'exclusion a refusé le chevauchement. Toute autre
+            // erreur SQL remonte telle quelle — la masquer transformerait un
+            // incident technique en « dates indisponibles ».
+            if (PostgresErrors::isExclusionViolation($e)) {
                 throw new DatesUnavailableException;
             }
 

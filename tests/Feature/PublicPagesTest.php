@@ -7,6 +7,7 @@ use App\Enums\PropertyStatus;
 use App\Models\Amenity;
 use App\Models\AvailabilityBlock;
 use App\Models\Destination;
+use App\Models\PricingRule;
 use App\Models\Property;
 use App\Models\PropertyImage;
 
@@ -55,6 +56,55 @@ it('affiche une villa publiée', function () {
         ->assertSee($property->name)
         ->assertSee('Une villa avec vue sur la lagune.')
         ->assertSee('Disponibilités');
+});
+
+it('affiche en tête le tarif réellement appliqué aux dates, pas le tarif de base brut', function () {
+    // Un tarif de saison à 360 000, alors que le tarif de base est à 450 000 :
+    // le prix en tête doit correspondre à ce que la ligne de détail facture
+    // réellement, sans quoi les deux chiffres ne se recoupent jamais.
+    $property = Property::factory()->published()->create([
+        'destination_id' => $this->destination->id,
+        'base_price' => 450_000,
+        'min_nights' => 1,
+    ]);
+    PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
+    PricingRule::factory()->create([
+        'property_id' => $property->id,
+        'starts_on' => '2026-06-01',
+        'ends_on' => '2026-09-30',
+        'price_per_night' => 360_000,
+        'priority' => 5,
+    ]);
+
+    $response = $this->get(route('villas.show', [
+        $property->destination, $property,
+    ]).'?checkin=2026-08-21&checkout=2026-08-28&guests=2');
+
+    $response->assertOk()
+        ->assertSee("360\u{202F}000")
+        ->assertSee('Tarif moyen pour ces dates');
+
+    // Le tarif de base brut ne doit apparaître qu'en mention secondaire,
+    // jamais comme le prix par nuit mis en avant.
+    expect(substr_count($response->content(), "450\u{202F}000"))->toBe(1);
+});
+
+it('affiche le tarif de base quand il correspond déjà au tarif appliqué', function () {
+    $property = Property::factory()->published()->create([
+        'destination_id' => $this->destination->id,
+        'base_price' => 250_000,
+        'weekend_price' => null,
+        'min_nights' => 1,
+    ]);
+    PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
+
+    $response = $this->get(route('villas.show', [
+        $property->destination, $property,
+    ]).'?checkin=2026-08-21&checkout=2026-08-24&guests=2');
+
+    $response->assertOk()
+        ->assertSee("250\u{202F}000")
+        ->assertDontSee('Tarif moyen pour ces dates');
 });
 
 it('renvoie 404 pour une villa non publiée', function (PropertyStatus $status) {

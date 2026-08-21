@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\AvailabilityBlockController;
 use App\Http\Controllers\Admin\BookingActionController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ComplianceController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Admin\PricingRuleController;
 use App\Http\Controllers\Admin\PropertyController as AdminPropertyController;
 use App\Http\Controllers\Admin\PropertyImageController as AdminPropertyImageController;
 use App\Http\Controllers\Admin\PropertyOwnerController as AdminOwnerController;
@@ -163,6 +165,13 @@ Route::middleware(['auth', 'admin'])
         Route::post('/villas/{property}/photos/{image}/couverture', [AdminPropertyImageController::class, 'makePrimary'])->name('villas.photos.primary');
         Route::post('/villas/{property}/photos/ordre', [AdminPropertyImageController::class, 'reorder'])->name('villas.photos.reorder');
         Route::delete('/villas/{property}/photos/{image}', [AdminPropertyImageController::class, 'destroy'])->name('villas.photos.destroy');
+
+        Route::post('/villas/{property}/tarifs', [PricingRuleController::class, 'store'])->name('villas.pricing.store');
+        Route::put('/villas/{property}/tarifs/{rule}', [PricingRuleController::class, 'update'])->name('villas.pricing.update');
+        Route::delete('/villas/{property}/tarifs/{rule}', [PricingRuleController::class, 'destroy'])->name('villas.pricing.destroy');
+
+        Route::post('/villas/{property}/blocages', [AvailabilityBlockController::class, 'store'])->name('villas.blocks.store');
+        Route::delete('/villas/{property}/blocages/{block}', [AvailabilityBlockController::class, 'destroy'])->name('villas.blocks.destroy');
 
         Route::get('/proprietaires', [AdminOwnerController::class, 'index'])->name('owners.index');
         Route::get('/proprietaires/nouveau', [AdminOwnerController::class, 'create'])->name('owners.create');

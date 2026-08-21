@@ -75,6 +75,7 @@
                 'equipements' => __('Équipements'),
                 'photos' => __('Photos'),
                 'tarifs' => __('Tarifs'),
+                'disponibilites' => __('Disponibilités'),
                 'regles' => __('Règles'),
                 'seo' => __('Référencement'),
             ] as $key => $label)
@@ -84,6 +85,9 @@
                     {{ $label }}
                     @if ($key === 'photos')
                         <span class="ml-1 text-xs opacity-70 tabular">{{ $property->images->count() }}</span>
+                    @endif
+                    @if ($key === 'disponibilites' && $property->availabilityBlocks->isNotEmpty())
+                        <span class="ml-1 text-xs opacity-70 tabular">{{ $property->availabilityBlocks->count() }}</span>
                     @endif
                 </button>
             @endforeach
@@ -319,7 +323,7 @@
                     </div>
 
                     <p class="border-t border-stone-200 px-5 py-3 text-xs text-navy-400">
-                        {{ __('Les tarifs de saison se règlent villa par villa dans une prochaine version. Le tarif week-end et le prix de base couvrent l\'essentiel.') }}
+                        {{ __('Le tarif de base et le tarif week-end s\'appliquent par défaut. Les périodes de saison, ci-dessous, les remplacent quand elles couvrent la date.') }}
                     </p>
                 </x-admin.panel>
             </div>
@@ -372,7 +376,7 @@
                 </x-admin.panel>
             </div>
 
-            <div x-show="tab !== 'photos'" class="mt-5 flex items-center gap-3">
+            <div x-show="tab !== 'photos' && tab !== 'disponibilites'" class="mt-5 flex items-center gap-3">
                 <x-ui.button type="submit" size="lg">{{ __('Enregistrer') }}</x-ui.button>
 
                 {{-- Le bouton vit ici, le formulaire plus bas : un formulaire
@@ -383,6 +387,166 @@
                 </x-ui.button>
             </div>
         </form>
+
+        {{-- ------------------------------------------------ Tarifs de saison --}}
+        {{-- Hors du formulaire principal : chaque règle a sa propre écriture,
+             indépendante de l'enregistrement des tarifs de base ci-dessus. --}}
+        <div x-show="tab === 'tarifs'" x-cloak class="mt-5">
+            <x-admin.panel :title="__('Tarifs de saison')"
+                           :subtitle="__('Le chevauchement entre périodes est permis — haute saison et fêtes de fin d\'année se recouvrent légitimement. C\'est la priorité qui départage : la plus haute l\'emporte.')">
+                @if ($property->pricingRules->isNotEmpty())
+                    <ul class="divide-y divide-stone-100">
+                        @foreach ($property->pricingRules as $rule)
+                            <li x-data="{ editing: false }">
+                                <div class="flex flex-wrap items-center justify-between gap-3 p-4">
+                                    <div class="min-w-0">
+                                        <p class="flex items-center gap-2 font-medium text-navy-900">
+                                            {{ $rule->label }}
+                                            <span class="text-xs font-normal text-navy-400">
+                                                {{ __('priorité :n', ['n' => $rule->priority]) }}
+                                            </span>
+                                        </p>
+                                        <p class="mt-0.5 text-sm text-navy-500 tabular">
+                                            {{ $rule->starts_on->format('d/m/Y') }} → {{ $rule->ends_on->format('d/m/Y') }}
+                                            <span class="text-navy-400">·</span>
+                                            {{ $rule->price_per_night->format() }}
+                                            @if ($rule->min_nights)
+                                                <span class="text-navy-400">·</span>
+                                                {{ trans_choice(':count nuit minimum|:count nuits minimum', $rule->min_nights, ['count' => $rule->min_nights]) }}
+                                            @endif
+                                        </p>
+                                    </div>
+
+                                    <div class="flex shrink-0 items-center gap-1.5">
+                                        <x-ui.button type="button" @click="editing = ! editing" variant="ghost" size="sm">
+                                            {{ __('Modifier') }}
+                                        </x-ui.button>
+                                        <form method="POST" action="{{ route('admin.villas.pricing.destroy', [$property, $rule]) }}"
+                                              onsubmit="return confirm('{{ __('Supprimer ce tarif de saison ?') }}')">
+                                            @csrf @method('DELETE')
+                                            <x-ui.button type="submit" variant="ghost" size="sm" class="text-danger-700 hover:bg-danger-50">
+                                                {{ __('Supprimer') }}
+                                            </x-ui.button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <form x-show="editing" x-cloak method="POST"
+                                      action="{{ route('admin.villas.pricing.update', [$property, $rule]) }}"
+                                      class="grid gap-3 border-t border-stone-100 bg-stone-50 p-4 sm:grid-cols-2 lg:grid-cols-6">
+                                    @csrf @method('PUT')
+                                    <div class="sm:col-span-2 lg:col-span-2">
+                                        <x-ui.input name="label" :label="__('Libellé')" required :value="$rule->label" />
+                                    </div>
+                                    <x-ui.input type="date" name="starts_on" :label="__('Du')" required :value="$rule->starts_on->toDateString()" />
+                                    <x-ui.input type="date" name="ends_on" :label="__('Au')" required :value="$rule->ends_on->toDateString()" />
+                                    <x-ui.input type="number" name="price_per_night" :label="__('Prix / nuit')" required min="0" step="5000"
+                                                :value="$rule->price_per_night->amount" class="no-spinner" />
+                                    <x-ui.input type="number" name="priority" :label="__('Priorité')" required min="0" max="100"
+                                                :value="$rule->priority" class="no-spinner" />
+                                    <div class="sm:col-span-2 lg:col-span-6 flex items-center gap-2">
+                                        <x-ui.button type="submit" size="sm">{{ __('Enregistrer ce tarif') }}</x-ui.button>
+                                    </div>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="px-5 py-8 text-center text-sm text-navy-400">
+                        {{ __('Aucun tarif de saison. Le tarif de base et le tarif week-end s\'appliquent seuls.') }}
+                    </p>
+                @endif
+
+                <form method="POST" action="{{ route('admin.villas.pricing.store', $property) }}"
+                      class="grid gap-3 border-t border-stone-200 p-5 sm:grid-cols-2 lg:grid-cols-6">
+                    @csrf
+                    <div class="sm:col-span-2 lg:col-span-2">
+                        <x-ui.input name="label" :label="__('Libellé')" required placeholder="{{ __('Haute saison') }}" />
+                    </div>
+                    <x-ui.input type="date" name="starts_on" :label="__('Du')" required />
+                    <x-ui.input type="date" name="ends_on" :label="__('Au')" required />
+                    <x-ui.input type="number" name="price_per_night" :label="__('Prix / nuit')" required min="0" step="5000" class="no-spinner" />
+                    <x-ui.input type="number" name="priority" :label="__('Priorité')" required min="0" max="100" value="0" class="no-spinner" />
+                    <div class="sm:col-span-2 lg:col-span-6">
+                        <x-ui.button type="submit" size="sm" icon="plus">{{ __('Ajouter ce tarif') }}</x-ui.button>
+                    </div>
+                </form>
+            </x-admin.panel>
+        </div>
+
+        {{-- ------------------------------------------------ Disponibilités --}}
+        <div x-show="tab === 'disponibilites'" x-cloak class="flex flex-col gap-5">
+            <x-admin.panel :title="__('Calendrier')"
+                           :subtitle="__('Le jour du départ d\'un blocage reste réservable : un séjour se termine le matin, le suivant commence l\'après-midi.')">
+                <div class="p-5">
+                    <x-availability-calendar :property="$property" :months="3" />
+                </div>
+            </x-admin.panel>
+
+            <x-admin.panel :title="__('Bloquer des dates')"
+                           :subtitle="__('Entretien, indisponibilité, réserve pour le propriétaire. Un blocage ne peut pas chevaucher une réservation en cours : la base l\'interdit.')">
+                @if (session('error'))
+                    <div class="border-b border-stone-200 p-5 pb-0">
+                        <x-ui.alert variant="danger">{{ session('error') }}</x-ui.alert>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('admin.villas.blocks.store', $property) }}"
+                      class="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
+                    @csrf
+                    <x-ui.input type="date" name="starts_on" :label="__('Du')" required :value="old('starts_on')" />
+                    <x-ui.input type="date" name="ends_on" :label="__('Au')" required :value="old('ends_on')" />
+                    <x-ui.select name="reason" :label="__('Motif')">
+                        <option value="manual" @selected(old('reason', 'manual') === 'manual')>{{ __('Blocage manuel') }}</option>
+                        <option value="maintenance" @selected(old('reason') === 'maintenance')>{{ __('Maintenance') }}</option>
+                    </x-ui.select>
+                    <div class="lg:col-span-2">
+                        <x-ui.input name="note" :label="__('Note (facultatif)')" :value="old('note')"
+                                    placeholder="{{ __('Entretien de la piscine') }}" />
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-5">
+                        <x-ui.button type="submit" size="sm" icon="plus">{{ __('Bloquer cette période') }}</x-ui.button>
+                    </div>
+                </form>
+
+                @if ($property->availabilityBlocks->isNotEmpty())
+                    <x-admin.table :headers="[__('Période'), __('Motif'), __('Note'), '']">
+                        @foreach ($property->availabilityBlocks as $block)
+                            <tr>
+                                <td class="px-4 py-3 text-navy-900 tabular">
+                                    {{ $block->starts_on->format('d/m/Y') }} → {{ $block->ends_on->format('d/m/Y') }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <x-ui.badge :variant="$block->reason->value === 'booking' ? 'navy' : 'warning'">
+                                        {{ $block->reason->label() }}
+                                    </x-ui.badge>
+                                </td>
+                                <td class="px-4 py-3 text-navy-500">{{ $block->note ?? '—' }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    @if ($block->reason->value === 'booking')
+                                        <span class="text-xs text-navy-400">
+                                            {{ __('Lié à une réservation') }}
+                                        </span>
+                                    @else
+                                        <form method="POST" action="{{ route('admin.villas.blocks.destroy', [$property, $block]) }}"
+                                              onsubmit="return confirm('{{ __('Libérer ces dates ?') }}')">
+                                            @csrf @method('DELETE')
+                                            <x-ui.button type="submit" variant="ghost" size="sm" class="text-danger-700 hover:bg-danger-50">
+                                                {{ __('Libérer') }}
+                                            </x-ui.button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </x-admin.table>
+                @else
+                    <p class="border-t border-stone-200 px-5 py-8 text-center text-sm text-navy-400">
+                        {{ __('Aucun blocage. Le calendrier est entièrement ouvert à la réservation.') }}
+                    </p>
+                @endif
+            </x-admin.panel>
+        </div>
 
         <form id="delete-property" method="POST" action="{{ route('admin.villas.destroy', $property) }}"
               onsubmit="return confirm('{{ __('Supprimer cette villa ? Elle disparaîtra du catalogue.') }}')">
