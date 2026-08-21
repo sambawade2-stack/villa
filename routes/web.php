@@ -16,7 +16,9 @@ use App\Http\Controllers\Admin\PropertyImageController as AdminPropertyImageCont
 use App\Http\Controllers\Admin\PropertyOwnerController as AdminOwnerController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Customer\BookingController;
 use App\Http\Controllers\Customer\FavoriteController;
@@ -86,14 +88,21 @@ Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/favoris', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favoris/{property}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
+    /*
+     * 'verified' seulement sur les deux gestes qui engagent réellement une
+     * réservation ou un règlement : c'est l'adresse de ce compte qui reçoit
+     * la confirmation et les instructions de paiement, elle doit donc être
+     * prouvée avant que quoi que ce soit ne s'y appuie. Consulter, régler une
+     * demande déjà en cours ou l'annuler restent ouverts sans cette barrière.
+     */
     Route::post('/villas/{property}/reserver', [BookingController::class, 'store'])
-        ->middleware('throttle:20,1')->name('bookings.store');
+        ->middleware(['verified', 'throttle:20,1'])->name('bookings.store');
 
     Route::get('/reservations', [BookingController::class, 'index'])->name('bookings.index');
     Route::get('/reservations/{booking}', [BookingController::class, 'show'])->name('bookings.show');
     Route::get('/reservations/{booking}/paiement', [BookingController::class, 'checkout'])->name('bookings.checkout');
     Route::post('/reservations/{booking}/paiement', [BookingController::class, 'pay'])
-        ->middleware('throttle:20,1')->name('bookings.pay');
+        ->middleware(['verified', 'throttle:20,1'])->name('bookings.pay');
     Route::post('/reservations/{booking}/annuler', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
@@ -130,11 +139,45 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/inscription', [RegisterController::class, 'create'])->name('register');
     Route::post('/inscription', [RegisterController::class, 'store'])->middleware('throttle:10,1');
+
+    Route::get('/mot-de-passe/oublie', [PasswordResetController::class, 'requestForm'])->name('password.request');
+    Route::post('/mot-de-passe/oublie', [PasswordResetController::class, 'sendResetLink'])
+        ->middleware('throttle:5,1')->name('password.email');
+
+    /*
+     * Le nom 'password.reset' est imposé : Illuminate\Auth\Notifications\
+     * ResetPassword construit le lien du courriel via route('password.reset', …)
+     * sans callback personnalisé — le renommer casserait le lien envoyé.
+     */
+    Route::get('/mot-de-passe/reinitialiser/{token}', [PasswordResetController::class, 'resetForm'])->name('password.reset');
+    Route::post('/mot-de-passe/reinitialiser', [PasswordResetController::class, 'reset'])
+        ->middleware('throttle:5,1')->name('password.update');
 });
 
 Route::post('/deconnexion', [LoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Vérification de l'e-mail
+|--------------------------------------------------------------------------
+|
+| 'verification.notice' et 'verification.verify' sont des noms imposés par le
+| framework : EnsureEmailIsVerified et le lien signé du courriel les
+| référencent directement, sans point de personnalisation.
+|
+*/
+
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verifier', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+
+    Route::get('/email/verifier/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+
+    Route::post('/email/renvoyer', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')->name('verification.send');
+});
 
 /*
 |--------------------------------------------------------------------------

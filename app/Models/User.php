@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -44,8 +45,17 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Conversation> $conversations
  * @property-read Collection<int, Property> $favoriteProperties
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
+    /*
+     * Le contrat MustVerifyEmail suffit : Illuminate\Foundation\Auth\User
+     * (dont cette classe hérite) utilise déjà le trait Illuminate\Auth\
+     * MustVerifyEmail, qui fournit hasVerifiedEmail(), markEmailAsVerified()
+     * et sendEmailVerificationNotification(). L'implémenter ici ne fait
+     * qu'activer le contrat — voir AppServiceProvider pour l'écouteur qui
+     * envoie réellement le courriel à l'inscription.
+     */
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 

@@ -11,8 +11,13 @@
         <x-ui.input type="email" name="email" :label="__('Adresse e-mail')" icon="mail"
                     :value="old('email')" required autofocus autocomplete="email" />
 
-        <x-ui.input type="password" name="password" :label="__('Mot de passe')" icon="key"
-                    required autocomplete="current-password" />
+        <div class="flex flex-col gap-1.5">
+            <x-ui.input type="password" name="password" :label="__('Mot de passe')" icon="key"
+                        required autocomplete="current-password" />
+            <a href="{{ route('password.request') }}" class="self-end text-xs text-navy-500 underline underline-offset-4 hover:text-navy-900">
+                {{ __('Mot de passe oublié ?') }}
+            </a>
+        </div>
 
         <label class="flex items-center gap-2.5 text-sm text-navy-600">
             <input type="checkbox" name="remember" value="1"
