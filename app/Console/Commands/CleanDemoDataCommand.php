@@ -21,6 +21,7 @@ use App\Models\PropertyOwner;
 use App\Models\Refund;
 use App\Models\Review;
 use App\Models\User;
+use App\Support\CatalogCache;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -111,6 +112,16 @@ class CleanDemoDataCommand extends Command
         });
 
         $this->purgeStorage();
+
+        /*
+         * Property et Destination invalident ce cache depuis leurs événements
+         * static::saved()/static::deleted() — mais ceux-ci ne se déclenchent
+         * que sur un $model->delete() individuel, jamais sur une suppression
+         * en masse via le query builder. C'est délibérément celle-ci qu'on
+         * utilise ici pour rester rapide sur des centaines de lignes ; il
+         * faut donc vider le cache à la main, une fois, à la fin.
+         */
+        CatalogCache::flush();
 
         $this->info('Nettoyage terminé.');
         $this->table(['Table', 'Lignes restantes'], collect($this->currentCounts())->map(
