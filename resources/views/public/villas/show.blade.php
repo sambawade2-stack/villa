@@ -71,7 +71,20 @@
 
     @push('head')
         <script type="application/ld+json">
-            {!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
+            {{--
+                JSON_HEX_TAG (et les drapeaux HEX voisins) transforment < > & ' "
+                en séquences \uXXXX : un nom ou une description de villa contenant
+                littéralement "</script>" ne peut plus refermer la balise et
+                injecter du HTML à sa suite. Le contenu vient aujourd'hui de
+                l'administrateur, donc l'exposition est mesurée — mais la v2 prévue
+                dans docs/architecture.html ouvre ces mêmes champs aux propriétaires,
+                ce qui en ferait une XSS stockée touchant tout visiteur de la fiche.
+                Autant l'exclure maintenant, pendant qu'elle ne coûte qu'une ligne.
+            --}}
+            {!! json_encode(
+                $structuredData,
+                JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+            ) !!}
         </script>
     @endpush
 

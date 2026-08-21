@@ -117,6 +117,40 @@ it('renvoie 404 pour une villa non publiée', function (PropertyStatus $status) 
     'suspendue' => PropertyStatus::Suspended,
 ]);
 
+it('échappe le contenu de la villa dans le bloc JSON-LD, sans possibilité d\'en sortir', function () {
+    // Un nom ou une description contenant littéralement "</script>" ne doit
+    // jamais pouvoir refermer la balise et injecter du HTML à sa suite — c'est
+    // aujourd'hui un champ réservé à l'administrateur, mais la v2 documentée
+    // (docs/architecture.html) l'ouvre aux propriétaires : autant que ce bloc
+    // reste sûr indépendamment de qui écrit le contenu.
+    $payload = '</script><script>alert(document.cookie)</script>';
+
+    $property = Property::factory()->published()->create([
+        'destination_id' => $this->destination->id,
+        'name' => 'Villa '.$payload,
+        'short_description' => ['fr' => $payload],
+    ]);
+    PropertyImage::factory()->primary()->create(['property_id' => $property->id]);
+
+    $html = $this->get(route('villas.show', [$property->destination, $property]))
+        ->assertOk()
+        ->content();
+
+    // La charge utile ne doit apparaître nulle part en clair : ni la balise
+    // fermante, ni le script injecté.
+    expect($html)->not->toContain('</script><script>alert(document.cookie)</script>')
+        ->and($html)->not->toContain('<script>alert(document.cookie)</script>');
+
+    // Le bloc JSON-LD doit rester un JSON valide et unique par page : s'il
+    // s'était refermé prématurément, il y aurait deux balises <script
+    // type="application/ld+json"> au lieu d'une, ou un JSON invalide.
+    preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $matches);
+    expect($matches)->toHaveCount(2);
+    $decoded = json_decode(trim($matches[1]), associative: true);
+    expect(json_last_error())->toBe(JSON_ERROR_NONE)
+        ->and($decoded['name'])->toContain('</script>');
+});
+
 it('n\'expose jamais l\'adresse interne ni les coordonnées exactes', function () {
     $property = Property::factory()->published()->create([
         'destination_id' => $this->destination->id,
