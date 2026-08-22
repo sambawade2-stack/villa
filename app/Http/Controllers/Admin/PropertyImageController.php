@@ -30,6 +30,11 @@ class PropertyImageController extends Controller
             'photos.*.dimensions' => __('Chaque photo doit faire au moins :width pixels de large.', [
                 'width' => ImageService::MIN_WIDTH,
             ]),
+            // Message dédié plutôt qu'un nom de champ substitué dans le
+            // gabarit générique : « la photo » précédé de « du champ » ne se
+            // lit pas comme une phrase — un nom de champ suppose un nom
+            // commun sans article, pas un groupe nominal complet.
+            'photos.*.uploaded' => __('Cette photo n\'a pas pu être envoyée. Réessayez, ou choisissez un fichier plus léger.'),
         ]);
 
         foreach ($request->file('photos') as $file) {
