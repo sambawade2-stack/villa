@@ -15,7 +15,8 @@ use App\Concerns\HasLabel;
  *
  * Deux niveaux d'exigence :
  *   — requis : la villa ne peut pas être déclarée vérifiée sans ;
- *   — conditionnel : « si applicable », l'équipe peut le marquer sans objet.
+ *   — conditionnel : « si applicable », l'équipe peut le marquer sans objet
+ *     (RCCM, agrément touristique, autorisation d'exploitation).
  */
 enum ComplianceItem: string
 {
@@ -39,10 +40,21 @@ enum ComplianceItem: string
         };
     }
 
-    /** Les éléments « si applicable » peuvent être écartés sans bloquer la vérification. */
+    /**
+     * Les éléments « si applicable » peuvent être écartés sans bloquer la
+     * vérification.
+     *
+     * Le RCCM a rejoint cette liste après le lancement : l'obtenir prend du
+     * temps côté administration sénégalaise, et l'exiger dès le premier jour
+     * aurait bloqué la mise en ligne des toutes premières villas.
+     */
     public function isConditional(): bool
     {
-        return in_array($this, [self::TourismLicence, self::OperatingPermit], strict: true);
+        return in_array(
+            $this,
+            [self::BusinessRegistration, self::TourismLicence, self::OperatingPermit],
+            strict: true,
+        );
     }
 
     /** Un document qui peut expirer doit porter une date de validité. */

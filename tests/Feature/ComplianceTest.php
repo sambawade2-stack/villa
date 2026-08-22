@@ -237,6 +237,17 @@ it('accepte qu\'une pièce conditionnelle soit sans objet', function () {
     expect($check->fresh()->status)->toBe(ComplianceStatus::NotApplicable);
 });
 
+it('accepte le RCCM en sans objet, devenu conditionnel après le lancement', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::BusinessRegistration)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.status', [$this->property, $check]),
+        ['status' => ComplianceStatus::NotApplicable->value]
+    )->assertRedirect();
+
+    expect($check->fresh()->status)->toBe(ComplianceStatus::NotApplicable);
+});
+
 it('refuse d\'écarter une pièce obligatoire', function () {
     $check = $this->property->complianceChecks()->where('item', ComplianceItem::OwnerIdentity)->first();
 
