@@ -162,14 +162,14 @@
                         </x-slot:action>
                     </x-ui.empty-state>
                 @else
-                    <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="flex flex-col gap-3">
                         @foreach ($properties as $property)
-                            <x-villa-card :property="$property" :eager="$loop->index < 3"
+                            <x-villa-card-compact :property="$property" :eager="$loop->index < 4"
                             class="reveal" :data-delay="min($loop->index, 3)" />
                         @endforeach
                     </div>
 
-                    <div class="mt-12">
+                    <div class="mt-10">
                         {{ $properties->onEachSide(1)->links() }}
                     </div>
                 @endif

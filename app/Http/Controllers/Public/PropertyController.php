@@ -32,7 +32,7 @@ class PropertyController extends Controller
 
         $properties = Property::query()
             ->published()
-            ->with(['destination', 'primaryImage'])
+            ->with(['destination', 'primaryImage', 'amenities'])
             ->inDestination($filters['destination'] ?? null)
             ->availableBetween($filters['checkin'] ?? null, $filters['checkout'] ?? null)
             ->forGuests(isset($filters['guests']) ? (int) $filters['guests'] : null)
