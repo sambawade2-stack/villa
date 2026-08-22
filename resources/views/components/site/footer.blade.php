@@ -61,9 +61,8 @@
     </div>
 
     <div class="border-t border-white/10">
-        <div class="container-page flex flex-col gap-2 py-5 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+        <div class="container-page py-5 text-xs text-white/50">
             <p>© {{ date('Y') }} Petite Côte Villas. {{ __('Tous droits réservés.') }}</p>
-            <p>{{ __('Données de démonstration — plateforme en construction.') }}</p>
         </div>
     </div>
 </footer>

@@ -6,7 +6,9 @@
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ([
-            ['key', __('Villas'), $stats['properties'], __(':published publiées · :drafts brouillons', ['published' => $stats['published'], 'drafts' => $stats['drafts']])],
+            ['key', __('Villas'), $stats['properties'],
+                trans_choice(':count publiée|:count publiées', $stats['published'], ['count' => $stats['published']])
+                .' · '.trans_choice(':count brouillon|:count brouillons', $stats['drafts'], ['count' => $stats['drafts']])],
             ['calendar', __('Réservations'), $stats['bookings'], __('toutes périodes')],
             ['users', __('Clients'), $stats['customers'], trans_choice(':count propriétaire|:count propriétaires', $stats['owners'], ['count' => $stats['owners']])],
             ['home', __('Chiffre d\'affaires'), $stats['revenue']->format(withCurrency: false), __(':amount de commissions', ['amount' => $stats['commissions']->format()])],

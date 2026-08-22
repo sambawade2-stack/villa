@@ -92,7 +92,10 @@ return [
     ],
 
     'compliance_status' => [
-        'pending' => 'À fournir',
+        // « En attente » plutôt que « À fournir » : deux des huit pièces
+        // (adresse, photos) ne reposent sur aucun document à fournir, juste
+        // un contrôle sur place — « à fournir » n'aurait aucun sens pour elles.
+        'pending' => 'En attente',
         'provided' => 'Déposé, à contrôler',
         'verified' => 'Vérifié',
         'not_applicable' => 'Sans objet',
