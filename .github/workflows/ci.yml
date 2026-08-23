@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  tests:
+    name: Style, analyse statique, tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: villa
+          POSTGRES_PASSWORD: villa
+          POSTGRES_DB: petite_cote_villas_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: petite_cote_villas_test
+      DB_USERNAME: villa
+      DB_PASSWORD: villa
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pgsql, bcmath, redis, gd
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      # EXCLUDE USING gist sur availability_blocks en dépend : sans elle, la
+      # migration échoue et la garantie anti-double-réservation ne peut même
+      # pas être posée.
+      - name: Active l'extension PostgreSQL btree_gist
+        run: PGPASSWORD=villa psql -h 127.0.0.1 -U villa -d petite_cote_villas_test -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
+
+      - name: Installe les dépendances PHP
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Installe les dépendances JS et construit les assets
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prépare l'environnement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Migre la base de test
+        run: php artisan migrate --force
+
+      - name: Style (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Analyse statique (PHPStan)
+        run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Tests (Pest)
+        run: vendor/bin/pest
+
+  audit:
+    name: Dépendances et secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Installe les dépendances
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci
+
+      # Non bloquant volontairement : une CVE dans une dépendance de build
+      # (Vite/Tailwind) ne doit pas empêcher de merger un correctif urgent
+      # sans rapport. Le but ici est la visibilité, pas un blocage aveugle.
+      - name: composer audit
+        run: composer audit
+        continue-on-error: true
+
+      - name: npm audit
+        run: npm audit --omit=dev
+        continue-on-error: true
+
+      # Scanne l'historique complet, pas seulement le diff : un secret
+      # supprimé dans un commit ultérieur reste lisible dans l'historique.
+      # Sur un dépôt privé, gitleaks-action peut demander une licence
+      # gratuite (secret GITLEAKS_LICENSE) selon leurs conditions actuelles.
+      - name: Scan de secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
