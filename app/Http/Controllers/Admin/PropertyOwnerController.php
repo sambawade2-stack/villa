@@ -9,11 +9,13 @@ use App\Enums\OwnerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\PropertyOwner;
+use App\Services\Owner\OwnerAccountService;
 use App\Support\Money;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 /**
  * Propriétaires.
@@ -76,6 +78,27 @@ class PropertyOwnerController extends Controller
 
         return redirect()->route('admin.owners.show', $owner)
             ->with('status', __('Fiche mise à jour.'));
+    }
+
+    /**
+     * Ouvre l'accès au portail propriétaire.
+     *
+     * Pour plus de transparence, un propriétaire suit lui-même l'état de sa
+     * villa et bloque ses propres dates, plutôt que de dépendre entièrement
+     * de l'administrateur.
+     */
+    public function grantAccess(PropertyOwner $owner, OwnerAccountService $accounts): RedirectResponse
+    {
+        try {
+            $accounts->grantAccess($owner);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('status', __(
+            'Accès activé. Un e-mail a été envoyé à :email pour choisir un mot de passe.',
+            ['email' => $owner->email]
+        ));
     }
 
     /** @return array<string, mixed> */

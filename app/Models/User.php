@@ -144,6 +144,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === UserRole::Customer;
     }
 
+    public function isOwner(): bool
+    {
+        return $this->role === UserRole::Owner;
+    }
+
     public function hasFavorited(Property $property): bool
     {
         return $this->favorites()->where('property_id', $property->id)->exists();

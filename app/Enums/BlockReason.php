@@ -17,4 +17,7 @@ enum BlockReason: string
     case Manual = 'manual';
 
     case Maintenance = 'maintenance';
+
+    /** Blocage posé par le propriétaire lui-même, pour son usage personnel. */
+    case OwnerUse = 'owner_use';
 }

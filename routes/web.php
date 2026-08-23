@@ -25,6 +25,8 @@ use App\Http\Controllers\Customer\FavoriteController;
 use App\Http\Controllers\Customer\MessageController;
 use App\Http\Controllers\Customer\NotificationController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\Owner\AvailabilityBlockController as OwnerAvailabilityBlockController;
+use App\Http\Controllers\Owner\DashboardController as OwnerDashboardController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\DestinationController;
 use App\Http\Controllers\Public\HomeController;
@@ -112,6 +114,26 @@ Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{conversation}', [MessageController::class, 'store'])
         ->middleware('throttle:40,1')->name('messages.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Espace propriétaire
+|--------------------------------------------------------------------------
+|
+| Pour la transparence : chaque propriétaire suit l'état de sa villa et
+| bloque ses propres dates, sans dépendre entièrement de l'administrateur.
+| Lecture seule sur tout ce qui touche aux réservations et aux paiements.
+|
+*/
+Route::middleware(['auth', 'owner'])->prefix('proprietaire')->name('owner.')->group(function () {
+    Route::get('/', [OwnerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/villas/{property}', [OwnerDashboardController::class, 'show'])->name('villas.show');
+
+    Route::post('/villas/{property}/blocages', [OwnerAvailabilityBlockController::class, 'store'])
+        ->middleware('throttle:20,1')->name('villas.blocks.store');
+    Route::delete('/villas/{property}/blocages/{block}', [OwnerAvailabilityBlockController::class, 'destroy'])
+        ->name('villas.blocks.destroy');
 });
 
 /*
@@ -224,6 +246,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/proprietaires/{owner}', [AdminOwnerController::class, 'show'])->name('owners.show');
         Route::get('/proprietaires/{owner}/modifier', [AdminOwnerController::class, 'edit'])->name('owners.edit');
         Route::put('/proprietaires/{owner}', [AdminOwnerController::class, 'update'])->name('owners.update');
+        Route::post('/proprietaires/{owner}/acces', [AdminOwnerController::class, 'grantAccess'])->name('owners.grant-access');
 
         Route::get('/reservations', [AdminBookingController::class, 'index'])->name('bookings.index');
         Route::get('/reservations/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');

@@ -7,6 +7,7 @@ return [
     'user_role' => [
         'admin' => 'Administrateur',
         'customer' => 'Client',
+        'owner' => 'Propriétaire',
     ],
 
     'property_status' => [
@@ -32,6 +33,7 @@ return [
         'booking' => 'Réservation',
         'manual' => 'Blocage manuel',
         'maintenance' => 'Maintenance',
+        'owner_use' => 'Usage propriétaire',
     ],
 
     'booking_status' => [

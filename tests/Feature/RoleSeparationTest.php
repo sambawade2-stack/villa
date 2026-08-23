@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Exceptions\BookingNotAllowedException;
 use App\Models\Booking;
 use App\Models\Property;
+use App\Models\PropertyOwner;
 use App\Models\User;
 use App\Services\Booking\BookingService;
 use Illuminate\Support\Carbon;
@@ -15,16 +16,19 @@ use Illuminate\Support\Carbon;
 | Séparation des rôles
 |--------------------------------------------------------------------------
 |
-| Un compte est soit administrateur, soit client — jamais les deux. La
-| frontière se tient à trois niveaux : le schéma (un seul rôle par compte),
-| les routes (middlewares), et le domaine métier (BookingService). Chacun est
-| vérifié ici, car un seul des trois suffirait à être contourné.
+| Un compte est administrateur, client, ou propriétaire — jamais deux à la
+| fois. La frontière se tient à trois niveaux : le schéma (un seul rôle par
+| compte), les routes (middlewares), et le domaine métier (BookingService).
+| Chacun est vérifié ici, car un seul des trois suffirait à être contourné.
 |
 */
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
     $this->customer = User::factory()->create();
+
+    $this->ownerAccount = User::factory()->create(['role' => UserRole::Owner]);
+    PropertyOwner::factory()->create(['user_id' => $this->ownerAccount->id]);
 
     $this->property = Property::factory()->published()->create(['min_nights' => 1, 'capacity' => 6]);
     $this->from = Carbon::today()->addMonth()->toDateString();
@@ -40,8 +44,11 @@ beforeEach(function () {
 it('n\'attribue qu\'un seul rôle par compte', function () {
     expect($this->admin->role)->toBe(UserRole::Admin)
         ->and($this->customer->role)->toBe(UserRole::Customer)
+        ->and($this->ownerAccount->role)->toBe(UserRole::Owner)
         ->and($this->admin->isCustomer())->toBeFalse()
-        ->and($this->customer->isAdmin())->toBeFalse();
+        ->and($this->customer->isAdmin())->toBeFalse()
+        ->and($this->customer->isOwner())->toBeFalse()
+        ->and($this->ownerAccount->isCustomer())->toBeFalse();
 });
 
 it('sépare les deux populations dans les requêtes', function () {
@@ -138,7 +145,51 @@ it('empêche un administrateur de mettre une villa en favori', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Ce que les deux rôles partagent
+| Le propriétaire ne franchit ni l'administration, ni l'espace voyageur
+|--------------------------------------------------------------------------
+*/
+
+it('renvoie 404 au propriétaire sur les écrans d\'administration', function () {
+    $this->actingAs($this->ownerAccount)->get('/admin')->assertNotFound();
+});
+
+it('renvoie le propriétaire vers son espace depuis l\'espace voyageur', function (string $path) {
+    $this->actingAs($this->ownerAccount)->get($path)
+        ->assertRedirect(route('owner.dashboard'))
+        ->assertSessionHas('error');
+})->with(['/reservations', '/favoris', '/messages', '/notifications']);
+
+it('renvoie le client et l\'administrateur hors de l\'espace propriétaire', function () {
+    $this->actingAs($this->customer)->get(route('owner.dashboard'))
+        ->assertRedirect(route('home'))
+        ->assertSessionHas('error');
+
+    $this->actingAs($this->admin)->get(route('owner.dashboard'))
+        ->assertRedirect(route('home'))
+        ->assertSessionHas('error');
+});
+
+it('empêche un propriétaire de réserver, jusque dans le service', function () {
+    expect(fn () => app(BookingService::class)->hold(
+        $this->property, $this->ownerAccount, $this->from, $this->to, 2,
+    ))->toThrow(BookingNotAllowedException::class);
+
+    expect(Booking::count())->toBe(0);
+});
+
+it('bloque aussi la réservation du propriétaire par la route', function () {
+    $this->actingAs($this->ownerAccount)
+        ->post(route('bookings.store', $this->property), [
+            'checkin' => $this->from, 'checkout' => $this->to, 'guests' => 2,
+        ])
+        ->assertRedirect(route('owner.dashboard'));
+
+    expect(Booking::count())->toBe(0);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Ce que les rôles partagent
 |--------------------------------------------------------------------------
 */
 
@@ -153,8 +204,8 @@ it('donne à chaque rôle son propre écran de notifications', function () {
         ->assertRedirect(route('admin.dashboard'));
 });
 
-it('laisse les deux rôles parcourir le site public', function () {
-    foreach ([$this->customer, $this->admin] as $user) {
+it('laisse les trois rôles parcourir le site public', function () {
+    foreach ([$this->customer, $this->admin, $this->ownerAccount] as $user) {
         $this->actingAs($user)->get(route('home'))->assertOk();
         $this->actingAs($user)->get(route('villas.index'))->assertOk();
     }

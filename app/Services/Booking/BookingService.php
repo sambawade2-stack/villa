@@ -238,11 +238,14 @@ class BookingService
     // ------------------------------------------------------------------ interne
 
     /**
-     * Un administrateur n'est pas un voyageur.
+     * Ni un administrateur, ni un propriétaire, n'est un voyageur.
      *
-     * Il gère les réservations des clients ; s'il pouvait en créer à son nom,
-     * le chiffre d'affaires et les commissions mélangeraient exploitation et
-     * usage. La frontière se tient ici, pas seulement dans les routes.
+     * L'administrateur gère les réservations des clients ; s'il pouvait en
+     * créer à son nom, le chiffre d'affaires et les commissions mélangeraient
+     * exploitation et usage. Le propriétaire, lui, bloque ses propres dates
+     * via AvailabilityService — un simple blocage de calendrier, jamais une
+     * réservation qui lui facturerait sa propre villa. La frontière se tient
+     * ici, pas seulement dans les routes.
      *
      * @throws BookingNotAllowedException
      */
@@ -251,6 +254,12 @@ class BookingService
         if ($customer->isAdmin()) {
             throw new BookingNotAllowedException(
                 __('Un compte administrateur ne peut pas réserver. Créez la réservation au nom du client.')
+            );
+        }
+
+        if ($customer->isOwner()) {
+            throw new BookingNotAllowedException(
+                __('Un compte propriétaire ne peut pas réserver. Bloquez les dates depuis votre espace propriétaire.')
             );
         }
     }

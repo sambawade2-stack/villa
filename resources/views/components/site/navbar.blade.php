@@ -40,8 +40,9 @@
 
         <div class="flex items-center gap-2.5">
             {{-- Les raccourcis de l'espace voyageur ne s'affichent que pour un
-                 voyageur : un administrateur a les siens dans /admin. --}}
-            @if (auth()->check() && ! auth()->user()->isAdmin())
+                 voyageur : un administrateur a les siens dans /admin, un
+                 propriétaire dans /proprietaire. --}}
+            @if (auth()->check() && auth()->user()->isCustomer())
                 @php
                     $unreadMessages = auth()->user()->conversations()->where('customer_unread_count', '>', 0)->count();
                     $unreadAlerts = auth()->user()->unreadNotifications()->count();
@@ -91,6 +92,13 @@
                         </span>
                     @endif
                 </a>
+            @endif
+
+            @if (auth()->check() && auth()->user()->isOwner())
+                <x-ui.button :href="route('owner.dashboard')" :variant="$transparent ? 'outline-light' : 'outline'" size="md"
+                             icon="home" class="hidden sm:inline-flex">
+                    {{ __('Mes villas') }}
+                </x-ui.button>
             @endif
 
             <x-ui.button :href="route('contact')" :variant="$transparent ? 'outline-light' : 'outline'" size="md"
@@ -149,10 +157,14 @@
             <div class="mt-3 flex flex-wrap items-center gap-3 border-t border-stone-200 pt-4">
                 <x-ui.button :href="route('contact')" variant="outline" size="sm">{{ __('Déposer ma villa') }}</x-ui.button>
                 @auth
-                    <x-ui.button :href="route('favorites.index')" variant="ghost" size="sm" icon="heart">{{ __('Favoris') }}</x-ui.button>
-                    <x-ui.button :href="route('messages.index')" variant="ghost" size="sm" icon="message-circle">{{ __('Messages') }}</x-ui.button>
-                    <x-ui.button :href="route('bookings.index')" variant="ghost" size="sm" icon="calendar">{{ __('Réservations') }}</x-ui.button>
-                    <x-ui.button :href="route('notifications.index')" variant="ghost" size="sm" icon="info">{{ __('Notifications') }}</x-ui.button>
+                    @if (auth()->user()->isCustomer())
+                        <x-ui.button :href="route('favorites.index')" variant="ghost" size="sm" icon="heart">{{ __('Favoris') }}</x-ui.button>
+                        <x-ui.button :href="route('messages.index')" variant="ghost" size="sm" icon="message-circle">{{ __('Messages') }}</x-ui.button>
+                        <x-ui.button :href="route('bookings.index')" variant="ghost" size="sm" icon="calendar">{{ __('Réservations') }}</x-ui.button>
+                        <x-ui.button :href="route('notifications.index')" variant="ghost" size="sm" icon="info">{{ __('Notifications') }}</x-ui.button>
+                    @elseif (auth()->user()->isOwner())
+                        <x-ui.button :href="route('owner.dashboard')" variant="ghost" size="sm" icon="home">{{ __('Mes villas') }}</x-ui.button>
+                    @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-ui.button type="submit" variant="ghost" size="sm">{{ __('Déconnexion') }}</x-ui.button>

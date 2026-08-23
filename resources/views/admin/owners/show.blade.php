@@ -51,6 +51,31 @@
                     {{ __('Appeler') }}
                 </x-ui.button>
             </div>
+
+            <div class="border-t border-stone-200 p-5">
+                <p class="text-sm font-semibold text-navy-900">{{ __('Accès portail propriétaire') }}</p>
+                @if ($owner->hasAccount())
+                    <p class="mt-2">
+                        <x-ui.badge variant="success" icon="badge-check">{{ __('Accès activé') }}</x-ui.badge>
+                    </p>
+                    <p class="mt-2 text-xs leading-relaxed text-navy-400">
+                        {{ __('Ce propriétaire peut suivre ses villas et bloquer ses propres dates depuis son espace.') }}
+                    </p>
+                @else
+                    <p class="mt-2 text-xs leading-relaxed text-navy-400">
+                        {{ __('Donne à ce propriétaire un accès pour suivre l\'état de sa villa et bloquer ses propres dates.') }}
+                    </p>
+                    <form method="POST" action="{{ route('admin.owners.grant-access', $owner) }}" class="mt-3">
+                        @csrf
+                        <x-ui.button type="submit" size="sm" :disabled="! $owner->email">
+                            {{ __('Activer l\'accès') }}
+                        </x-ui.button>
+                    </form>
+                    @unless ($owner->email)
+                        <p class="mt-2 text-xs text-danger-600">{{ __('Renseignez une adresse e-mail pour pouvoir l\'activer.') }}</p>
+                    @endunless
+                @endif
+            </div>
         </x-admin.panel>
 
         <x-admin.panel :title="__('Villas de ce propriétaire')">

@@ -13,5 +13,6 @@ enum UserRole: string
     case Admin = 'admin';
     case Customer = 'customer';
 
-    // Le rôle propriétaire viendra en v2, quand PropertyOwner::$user_id sera renseigné.
+    /** Propriétaire disposant d'un accès portail — voir PropertyOwner::$user_id. */
+    case Owner = 'owner';
 }

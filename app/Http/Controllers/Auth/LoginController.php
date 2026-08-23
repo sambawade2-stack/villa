@@ -52,7 +52,11 @@ class LoginController extends Controller
         $user = $request->user();
         $user->forceFill(['last_login_at' => now()])->saveQuietly();
 
-        return redirect()->intended($user->isAdmin() ? route('admin.dashboard') : route('home'));
+        return redirect()->intended(match (true) {
+            $user->isAdmin() => route('admin.dashboard'),
+            $user->isOwner() => route('owner.dashboard'),
+            default => route('home'),
+        });
     }
 
     public function destroy(Request $request): RedirectResponse
