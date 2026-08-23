@@ -182,7 +182,9 @@ it('donne toujours la même position floutée pour une villa', function () {
     $this->actingAs($this->admin)->post(route('admin.villas.publish', $property));
     $first = $property->fresh()->approx_latitude;
 
-    $property->update(['status' => PropertyStatus::Draft]);
+    // 'status' n'est plus mass-assignable : ce test remet la villa en
+    // brouillon directement sur le modèle, pour republier ensuite.
+    $property->forceFill(['status' => PropertyStatus::Draft])->save();
     $this->actingAs($this->admin)->post(route('admin.villas.publish', $property));
 
     // Sinon le point sauterait sur la carte à chaque republication.
@@ -382,4 +384,28 @@ it('interdit d\'agir sur la photo d\'une autre villa', function () {
         ->assertNotFound();
 
     expect($b->images()->count())->toBe(1);
+});
+
+it('refuse de réordonner avec l\'identifiant d\'une photo appartenant à une autre villa', function () {
+    Storage::fake('properties');
+    $a = Property::factory()->create(['destination_id' => $this->destination->id]);
+    $b = Property::factory()->create(['destination_id' => $this->destination->id]);
+
+    $this->actingAs($this->admin)->post(route('admin.villas.photos.store', $a), [
+        'photos' => [UploadedFile::fake()->image('a.jpg', 1600, 1200)],
+    ]);
+    $ownImage = $a->images()->firstOrFail();
+
+    $this->actingAs($this->admin)->post(route('admin.villas.photos.store', $b), [
+        'photos' => [UploadedFile::fake()->image('b.jpg', 1600, 1200)],
+    ]);
+    $foreignImage = $b->images()->firstOrFail();
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.villas.photos.reorder', $a), [
+            'order' => [$ownImage->id, $foreignImage->id],
+        ])
+        ->assertNotFound();
+
+    expect($ownImage->fresh()->position)->toBe($ownImage->position);
 });

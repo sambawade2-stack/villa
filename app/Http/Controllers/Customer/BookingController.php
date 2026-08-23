@@ -63,7 +63,7 @@ class BookingController extends Controller
 
     public function checkout(Request $request, Booking $booking): View|RedirectResponse
     {
-        $this->authorizeOwnership($request, $booking);
+        $this->authorize('view', $booking);
 
         if (! $booking->isPending()) {
             return redirect()->route('bookings.show', $booking);
@@ -84,7 +84,7 @@ class BookingController extends Controller
 
     public function pay(Request $request, Booking $booking): RedirectResponse
     {
-        $this->authorizeOwnership($request, $booking);
+        $this->authorize('view', $booking);
 
         abort_unless($booking->isPending(), 404);
 
@@ -102,7 +102,7 @@ class BookingController extends Controller
 
     public function show(Request $request, Booking $booking): View
     {
-        $this->authorizeOwnership($request, $booking);
+        $this->authorize('view', $booking);
 
         return view('customer.bookings.show', [
             'booking' => $booking->load(['property.destination', 'property.primaryImage', 'payment', 'review']),
@@ -112,7 +112,7 @@ class BookingController extends Controller
 
     public function cancel(Request $request, Booking $booking): RedirectResponse
     {
-        $this->authorizeOwnership($request, $booking);
+        $this->authorize('view', $booking);
 
         try {
             $this->bookings->cancel($booking, $request->user(), __('Annulation demandée par le client.'));
@@ -121,11 +121,5 @@ class BookingController extends Controller
         }
 
         return back()->with('status', __('Réservation annulée. Les dates sont de nouveau disponibles.'));
-    }
-
-    /** Un client n'accède qu'à ses propres réservations. 404, jamais 403. */
-    private function authorizeOwnership(Request $request, Booking $booking): void
-    {
-        abort_unless($booking->user_id === $request->user()->id, 404);
     }
 }

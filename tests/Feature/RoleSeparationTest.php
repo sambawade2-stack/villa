@@ -55,7 +55,7 @@ it('ne laisse pas s\'inscrire avec le rôle administrateur', function () {
     $this->post(route('register'), [
         'first_name' => 'Tentative', 'last_name' => 'Escalade',
         'email' => 'escalade@example.test',
-        'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
         'role' => UserRole::Admin->value,
     ]);
 

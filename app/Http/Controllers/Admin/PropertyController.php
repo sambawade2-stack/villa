@@ -64,7 +64,10 @@ class PropertyController extends Controller
     {
         $data = $request->validated();
 
-        $property = Property::create([
+        // 'status' n'est pas mass-assignable : forceCreate est le seul chemin
+        // qui puisse l'écrire, ici en toute sécurité puisque $data ne contient
+        // que des champs validés par StorePropertyRequest.
+        $property = Property::forceCreate([
             ...$data,
             'slug' => $this->uniqueSlug($data['name']),
             'status' => PropertyStatus::Draft,
@@ -134,11 +137,11 @@ class PropertyController extends Controller
             ]));
         }
 
-        $property->update([
+        $property->forceFill([
             'status' => PropertyStatus::Published,
             'published_at' => $property->published_at ?? now(),
             ...$this->approximateCoordinates($property),
-        ]);
+        ])->save();
 
         return back()->with('status', __('Villa publiée.'));
     }
@@ -149,7 +152,7 @@ class PropertyController extends Controller
             'status' => ['required', 'in:unpublished,suspended'],
         ]);
 
-        $property->update(['status' => PropertyStatus::from($data['status'])]);
+        $property->forceFill(['status' => PropertyStatus::from($data['status'])])->save();
 
         return back()->with('status', __('Villa retirée du catalogue.'));
     }

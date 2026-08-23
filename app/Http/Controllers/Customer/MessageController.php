@@ -28,7 +28,7 @@ class MessageController extends Controller
 
     public function show(Request $request, Conversation $conversation): View
     {
-        $this->authorizeOwnership($request, $conversation);
+        $this->authorize('view', $conversation);
 
         $this->messaging->markReadForCustomer($conversation);
 
@@ -39,7 +39,7 @@ class MessageController extends Controller
 
     public function store(Request $request, Conversation $conversation): RedirectResponse
     {
-        $this->authorizeOwnership($request, $conversation);
+        $this->authorize('view', $conversation);
 
         $data = $request->validate([
             'body' => ['required', 'string', 'min:2', 'max:4000'],
@@ -68,16 +68,5 @@ class MessageController extends Controller
 
         return redirect()->route('messages.show', $conversation)
             ->with('status', __('Message envoyé. Notre équipe répond sous 2 heures ouvrées.'));
-    }
-
-    /**
-     * Un client n'accède qu'à ses propres fils.
-     *
-     * 404 plutôt que 403 : l'existence d'une conversation entre deux autres
-     * personnes n'a pas à être confirmée.
-     */
-    private function authorizeOwnership(Request $request, Conversation $conversation): void
-    {
-        abort_unless($conversation->user_id === $request->user()->id, 404);
     }
 }

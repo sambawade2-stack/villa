@@ -57,12 +57,14 @@ it('bloque après cinq tentatives infructueuses', function () {
 });
 
 it('inscrit un nouveau client', function () {
+    // Pas « motdepasse1 » : un mot de passe aussi répandu échoue désormais à
+    // la vérification anti-fuite (Password::uncompromised()).
     $this->post(route('register'), [
         'first_name' => 'Awa',
         'last_name' => 'Sow',
         'email' => 'awa@example.test',
-        'password' => 'motdepasse1',
-        'password_confirmation' => 'motdepasse1',
+        'password' => 'Zk92WqhsFr2026',
+        'password_confirmation' => 'Zk92WqhsFr2026',
     ])->assertRedirect(route('home'));
 
     $user = User::where('email', 'awa@example.test')->first();
@@ -79,8 +81,8 @@ it('ne laisse pas s\'inscrire comme administrateur', function () {
         'first_name' => 'Malicieux',
         'last_name' => 'Utilisateur',
         'email' => 'pirate@example.test',
-        'password' => 'motdepasse1',
-        'password_confirmation' => 'motdepasse1',
+        'password' => 'Zk92WqhsFr2026',
+        'password_confirmation' => 'Zk92WqhsFr2026',
         'role' => 'admin',
     ]);
 

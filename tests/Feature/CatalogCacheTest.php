@@ -62,7 +62,9 @@ it('tombe dès qu\'une villa est dépubliée', function () {
     $property = Property::factory()->published()->create(['destination_id' => $this->destination->id]);
     expect(countFor('saly'))->toBe(1);
 
-    $property->update(['status' => PropertyStatus::Unpublished]);
+    // 'status' n'est plus mass-assignable (voir Property::$fillable) : ce test
+    // manipule directement le modèle, comme le fait PropertyController::unpublish.
+    $property->forceFill(['status' => PropertyStatus::Unpublished])->save();
 
     expect(countFor('saly'))->toBe(0);
 });

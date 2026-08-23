@@ -64,6 +64,14 @@ class PropertyImageController extends Controller
             'order.*' => ['integer'],
         ]);
 
+        // Même garde qu'ailleurs dans ce contrôleur : un identifiant étranger
+        // à cette villa refuse plutôt que de disparaître en silence dans la
+        // mise à jour scopée par la relation.
+        abort_unless(
+            $property->images()->whereIn('id', $data['order'])->count() === count($data['order']),
+            404
+        );
+
         $this->images->reorder($property, $data['order']);
 
         return response()->json(['ok' => true]);

@@ -83,11 +83,11 @@ it('réinitialise le mot de passe avec un jeton valide', function () {
     $this->post(route('password.update'), [
         'token' => $token,
         'email' => 'moussa@example.test',
-        'password' => 'nouveau-motdepasse1',
-        'password_confirmation' => 'nouveau-motdepasse1',
+        'password' => 'Zk92WqhsFr2026',
+        'password_confirmation' => 'Zk92WqhsFr2026',
     ])->assertRedirect(route('login'));
 
-    expect(Hash::check('nouveau-motdepasse1', $user->fresh()->password))->toBeTrue()
+    expect(Hash::check('Zk92WqhsFr2026', $user->fresh()->password))->toBeTrue()
         ->and(Hash::check('ancien-motdepasse1', $user->fresh()->password))->toBeFalse();
 });
 
@@ -97,10 +97,10 @@ it('connecte avec le nouveau mot de passe après réinitialisation', function ()
 
     $this->post(route('password.update'), [
         'token' => $token, 'email' => 'moussa@example.test',
-        'password' => 'nouveau-motdepasse1', 'password_confirmation' => 'nouveau-motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
     ]);
 
-    $this->post(route('login'), ['email' => 'moussa@example.test', 'password' => 'nouveau-motdepasse1'])
+    $this->post(route('login'), ['email' => 'moussa@example.test', 'password' => 'Zk92WqhsFr2026'])
         ->assertRedirect(route('home'));
 
     $this->assertAuthenticatedAs($user);
@@ -112,8 +112,8 @@ it('refuse un jeton invalide', function () {
     $this->post(route('password.update'), [
         'token' => 'jeton-invente',
         'email' => 'moussa@example.test',
-        'password' => 'nouveau-motdepasse1',
-        'password_confirmation' => 'nouveau-motdepasse1',
+        'password' => 'Zk92WqhsFr2026',
+        'password_confirmation' => 'Zk92WqhsFr2026',
     ])->assertSessionHasErrors('email');
 
     expect(Hash::check('ancien-motdepasse1', $user->fresh()->password))->toBeTrue();
@@ -125,13 +125,13 @@ it('refuse un jeton déjà consommé', function () {
 
     $payload = [
         'token' => $token, 'email' => 'moussa@example.test',
-        'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
     ];
 
     $this->post(route('password.update'), $payload)->assertRedirect(route('login'));
 
     $this->post(route('password.update'), [
-        ...$payload, 'password' => 'autremotdepasse1', 'password_confirmation' => 'autremotdepasse1',
+        ...$payload, 'password' => 'Trvpo83NczFr2026', 'password_confirmation' => 'Trvpo83NczFr2026',
     ])->assertSessionHasErrors('email');
 });
 
@@ -151,7 +151,7 @@ it('révoque toute session « rester connecté » à la réinitialisation', func
 
     $this->post(route('password.update'), [
         'token' => $token, 'email' => 'moussa@example.test',
-        'password' => 'nouveau-motdepasse1', 'password_confirmation' => 'nouveau-motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
     ]);
 
     expect($user->fresh()->remember_token)->not->toBe('ancien-jeton');
@@ -165,7 +165,7 @@ it('consomme le jeton en base après un succès', function () {
 
     $this->post(route('password.update'), [
         'token' => $token, 'email' => 'moussa@example.test',
-        'password' => 'nouveau-motdepasse1', 'password_confirmation' => 'nouveau-motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
     ]);
 
     expect(DB::table('password_reset_tokens')->where('email', 'moussa@example.test')->exists())->toBeFalse();

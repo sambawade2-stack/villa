@@ -22,7 +22,7 @@ it('envoie un courriel de vérification à l\'inscription', function () {
 
     $this->post(route('register'), [
         'first_name' => 'Awa', 'last_name' => 'Sow', 'email' => 'awa@example.test',
-        'password' => 'motdepasse1', 'password_confirmation' => 'motdepasse1',
+        'password' => 'Zk92WqhsFr2026', 'password_confirmation' => 'Zk92WqhsFr2026',
     ]);
 
     $user = User::where('email', 'awa@example.test')->firstOrFail();

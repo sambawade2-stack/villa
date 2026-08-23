@@ -72,12 +72,16 @@ class Booking extends Model
 
     protected $fillable = [
         'reference', 'property_id', 'user_id',
-        'checkin_date', 'checkout_date', 'nights', 'guests_count', 'status',
+        'checkin_date', 'checkout_date', 'nights', 'guests_count',
         'nightly_subtotal', 'cleaning_fee', 'service_fee', 'extra_fees_total',
-        'discount_total', 'total_amount', 'security_deposit', 'currency',
-        'price_breakdown', 'commission_rate', 'commission_amount', 'owner_payout_amount',
+        'discount_total', 'security_deposit', 'currency',
+        'price_breakdown',
         'guest_note', 'admin_note', 'hold_expires_at',
         'confirmed_at', 'cancelled_at', 'cancellation_reason', 'cancelled_by', 'completed_at',
+        // 'status', 'total_amount', 'commission_rate', 'commission_amount' et
+        // 'owner_payout_amount' sont volontairement absents : seul
+        // BookingService les écrit, via forceCreate/forceFill — jamais une
+        // requête passée telle quelle.
     ];
 
     /** Colonne générée par PostgreSQL : lecture seule. */

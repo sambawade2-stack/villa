@@ -28,12 +28,13 @@ class RegisterController extends Controller
             'last_name' => ['required', 'string', 'max:80'],
             'email' => ['required', 'string', 'email', 'max:190', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:32'],
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()->uncompromised()],
         ]);
 
         // Le rôle n'est jamais accepté depuis la requête : on ne s'inscrit pas
-        // administrateur en ajoutant un champ au formulaire.
-        $user = User::create([
+        // administrateur en ajoutant un champ au formulaire. Il est aussi hors
+        // de $fillable — forceCreate est le seul chemin qui puisse l'écrire.
+        $user = User::forceCreate([
             ...$data,
             'role' => UserRole::Customer,
             'locale' => app()->getLocale(),

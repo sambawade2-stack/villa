@@ -74,7 +74,9 @@ class BookingService
             // navigateur n'est jamais une source.
             $quote = $this->pricing->quote($locked, $checkin, $checkout, $guests);
 
-            $booking = Booking::create([
+            // 'status' et 'total_amount' ne sont pas mass-assignables :
+            // forceCreate est le seul chemin qui puisse les écrire.
+            $booking = Booking::forceCreate([
                 'reference' => BookingReference::next(),
                 'property_id' => $locked->id,
                 'user_id' => $customer->id,
@@ -122,14 +124,17 @@ class BookingService
             $commission = $booking->total_amount->percentage($rate);
             $payout = $booking->total_amount->minus($commission);
 
-            $booking->update([
+            // 'status', 'commission_rate', 'commission_amount' et
+            // 'owner_payout_amount' ne sont pas mass-assignables : forceFill
+            // est le seul chemin qui puisse les écrire.
+            $booking->forceFill([
                 'status' => BookingStatus::Confirmed,
                 'confirmed_at' => now(),
                 'hold_expires_at' => null,
                 'commission_rate' => $rate,
                 'commission_amount' => $commission,
                 'owner_payout_amount' => $payout,
-            ]);
+            ])->save();
 
             Commission::updateOrCreate(
                 ['booking_id' => $booking->id],
@@ -164,12 +169,14 @@ class BookingService
 
             $booking->availabilityBlock()->delete();
 
-            $booking->update([
+            // 'status' n'est pas mass-assignable : forceFill est le seul
+            // chemin qui puisse l'écrire.
+            $booking->forceFill([
                 'status' => BookingStatus::Cancelled,
                 'cancelled_at' => now(),
                 'cancelled_by' => $by?->id,
                 'cancellation_reason' => $reason,
-            ]);
+            ])->save();
 
             $booking->commission()->update(['status' => CommissionStatus::Cancelled]);
 
@@ -186,7 +193,9 @@ class BookingService
     {
         $this->assertTransition($booking, BookingStatus::Completed);
 
-        $booking->update(['status' => BookingStatus::Completed, 'completed_at' => now()]);
+        // 'status' n'est pas mass-assignable : forceFill est le seul chemin
+        // qui puisse l'écrire.
+        $booking->forceFill(['status' => BookingStatus::Completed, 'completed_at' => now()])->save();
 
         return $booking->fresh();
     }

@@ -94,8 +94,7 @@ class Property extends Model
 
     protected $fillable = [
         'property_owner_id', 'destination_id', 'name', 'slug',
-        'description', 'short_description', 'type', 'status',
-        'is_verified', 'is_featured',
+        'description', 'short_description', 'type',
         'capacity', 'bedrooms', 'beds', 'bathrooms', 'surface_sqm',
         'neighborhood', 'zone', 'latitude', 'longitude',
         'approx_latitude', 'approx_longitude', 'internal_address', 'internal_notes',
@@ -104,7 +103,12 @@ class Property extends Model
         'cleaning_fee', 'security_deposit', 'extra_fees',
         'min_nights', 'max_nights', 'checkin_time', 'checkout_time',
         'pets_allowed', 'parties_allowed', 'smoking_allowed', 'house_rules',
-        'meta_title', 'meta_description', 'published_at',
+        'meta_title', 'meta_description',
+        // 'status', 'is_verified', 'is_featured' et 'published_at' sont
+        // volontairement absents : seuls PropertyController::store/publish/
+        // unpublish et ComplianceService::syncPropertyVerification les
+        // écrivent, via forceFill ou forceCreate — jamais depuis une requête
+        // passée telle quelle.
     ];
 
     /**
