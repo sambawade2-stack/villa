@@ -108,7 +108,11 @@ class ComplianceController extends Controller
 
         abort_unless($disk->exists($check->document_path), 404);
 
-        return $disk->response(
+        // En pièce jointe, jamais affiché inline : un document déposé par un
+        // propriétaire n'est jamais réencodé avant stockage, contrairement aux
+        // photos. Forcer le téléchargement évite qu'un PDF piégé s'exécute
+        // directement dans l'onglet de l'administrateur qui le consulte.
+        return $disk->download(
             $check->document_path,
             $check->document_name ?? 'document',
             [

@@ -42,7 +42,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('/villas', [PropertyController::class, 'index'])->name('villas.index');
+Route::get('/villas', [PropertyController::class, 'index'])
+    ->middleware('throttle:60,1')
+    ->name('villas.index');
 
 /*
  * Adresse canonique de la fiche villa : /villas/{destination}/{villa}.

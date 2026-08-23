@@ -134,6 +134,24 @@ it('ne laisse télécharger un document qu\'à un administrateur', function () {
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });
 
+it('force le téléchargement du document au lieu de l\'afficher inline', function () {
+    Storage::fake('compliance');
+
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::OwnerIdentity)->first();
+    $this->actingAs($this->admin)->post(
+        route('admin.villas.compliance.upload', [$this->property, $check]),
+        ['document' => UploadedFile::fake()->create('piece.pdf', 30, 'application/pdf')]
+    );
+
+    $response = $this->actingAs($this->admin)->get(
+        route('admin.villas.compliance.download', [$this->property, $check])
+    );
+
+    // « inline » laisserait un PDF piégé s'ouvrir directement dans l'onglet
+    // de l'administrateur ; « attachment » force une étape de téléchargement.
+    expect($response->headers->get('Content-Disposition'))->toContain('attachment');
+});
+
 it('interdit de lire le dossier d\'une villa par l\'URL d\'une autre', function () {
     $other = Property::factory()->published()->create();
     $this->compliance->ensureChecklist($other);
