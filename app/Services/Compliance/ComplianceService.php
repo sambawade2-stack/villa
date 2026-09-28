@@ -28,7 +28,15 @@ class ComplianceService
 
     public const MAX_SIZE_KB = 8192;
 
-    /** Crée les lignes manquantes du dossier. Idempotent. */
+    /**
+     * Crée les lignes manquantes du dossier. Idempotent.
+     *
+     * Les pièces conditionnelles (RCCM, agrément touristique, autorisation
+     * d'exploitation) partent directement en « sans objet » : la plateforme
+     * ne les exige pas au lancement, et un administrateur ne devrait pas
+     * avoir à écarter la même pièce à la main sur chaque nouvelle villa. Il
+     * reste libre de la renseigner plus tard si le propriétaire l'obtient.
+     */
     public function ensureChecklist(Property $property): void
     {
         $existing = $property->complianceChecks()->pluck('item')->all();
@@ -41,7 +49,7 @@ class ComplianceService
             ->map(fn (ComplianceItem $item) => [
                 'property_id' => $property->id,
                 'item' => $item->value,
-                'status' => ComplianceStatus::Pending->value,
+                'status' => ($item->isConditional() ? ComplianceStatus::NotApplicable : ComplianceStatus::Pending)->value,
                 'created_at' => now(),
                 'updated_at' => now(),
             ])
