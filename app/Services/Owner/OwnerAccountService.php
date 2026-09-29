@@ -48,7 +48,9 @@ class OwnerAccountService
             'email_verified_at' => now(),
         ]);
 
-        $owner->update(['user_id' => $user->id]);
+        // 'user_id' n'est pas mass-assignable : forceFill est le seul chemin
+        // qui puisse l'écrire.
+        $owner->forceFill(['user_id' => $user->id])->save();
 
         Password::sendResetLink(['email' => $owner->email]);
 

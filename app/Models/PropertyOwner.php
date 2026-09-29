@@ -50,8 +50,11 @@ class PropertyOwner extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'first_name', 'last_name', 'phone', 'whatsapp',
+        'first_name', 'last_name', 'phone', 'whatsapp',
         'email', 'city', 'internal_address', 'internal_notes', 'status',
+        // 'user_id' est volontairement absent : seul OwnerAccountService::
+        // grantAccess() le renseigne, via forceFill — jamais depuis une
+        // requête passée telle quelle.
     ];
 
     protected function casts(): array
