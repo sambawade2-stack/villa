@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\PropertyImage;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\Booking\BookingService;
 use Illuminate\Support\Carbon;
 
 beforeEach(function () {
@@ -111,6 +112,27 @@ it('ne confirme jamais deux fois le même règlement', function () {
 
     // Une seule commission, pas deux.
     expect($booking->property->owner->commissions()->count())->toBe(1);
+});
+
+it('refuse de constater un règlement sur une réservation déjà annulée', function () {
+    // Le virement arrive après l'expiration du délai de tenue des dates :
+    // l'administrateur ne doit pas pouvoir constater le règlement d'une
+    // réservation que les dates ont déjà quittée.
+    $this->actingAs($this->customer)->post(route('bookings.store', $this->property), [
+        'checkin' => $this->from, 'checkout' => $this->to, 'guests' => 2,
+    ]);
+    $booking = Booking::firstOrFail();
+    $this->actingAs($this->customer)->post(route('bookings.pay', $booking), ['gateway' => 'manual']);
+
+    app(BookingService::class)->cancel($booking, reason: 'Paiement non reçu dans le délai imparti.');
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.bookings.confirm-payment', $booking), ['note' => 'Virement reçu en retard'])
+        ->assertSessionHas('error');
+
+    expect($booking->fresh()->status)->toBe(BookingStatus::Cancelled)
+        ->and($booking->fresh()->payment->status)->toBe(PaymentStatus::Processing)
+        ->and(AvailabilityBlock::where('booking_id', $booking->id)->exists())->toBeFalse();
 });
 
 /*

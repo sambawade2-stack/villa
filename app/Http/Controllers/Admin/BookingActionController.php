@@ -39,7 +39,11 @@ class BookingActionController extends Controller
             return back()->with('error', __('Ce paiement est déjà constaté.'));
         }
 
-        $this->payments->markPaid($payment, $request->user(), $data['note'] ?? null);
+        try {
+            $this->payments->markPaid($payment, $request->user(), $data['note'] ?? null);
+        } catch (BookingNotAllowedException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('status', __('Règlement constaté, réservation confirmée.'));
     }

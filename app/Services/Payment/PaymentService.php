@@ -7,6 +7,7 @@ namespace App\Services\Payment;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\TransactionType;
+use App\Exceptions\BookingNotAllowedException;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\User;
@@ -63,6 +64,13 @@ class PaymentService
      *
      * `$confirmedBy` est renseigné pour un règlement hors ligne : on veut savoir
      * quel administrateur a constaté la réception, et quand.
+     *
+     * @throws BookingNotAllowedException si la réservation ne peut plus être
+     *                                    confirmée (déjà annulée — par exemple un délai de paiement
+     *                                    dépassé entre-temps — déjà terminée ou remboursée). Constater
+     *                                    un règlement sans pouvoir honorer la réservation créerait un
+     *                                    paiement « réglé » fantôme, sans réservation en face et sans
+     *                                    remboursement déclenché.
      */
     public function markPaid(Payment $payment, ?User $confirmedBy = null, ?string $note = null): Payment
     {
@@ -71,6 +79,15 @@ class PaymentService
                 // Déjà réglé : on ne confirme pas deux fois, et surtout on ne
                 // crée pas une seconde commission.
                 return $payment;
+            }
+
+            $booking = $payment->booking;
+
+            if (! $booking->status->canTransitionTo(BookingStatus::Confirmed)) {
+                throw new BookingNotAllowedException(__(
+                    'Cette réservation est :statut et ne peut plus être confirmée. Contactez le client avant de constater ce règlement : il faudra probablement le rembourser ou le reloger sur d\'autres dates.',
+                    ['statut' => mb_strtolower($booking->status->label())]
+                ));
             }
 
             $payment->update([
@@ -92,11 +109,7 @@ class PaymentService
                 'occurred_at' => now(),
             ]);
 
-            $booking = $payment->booking;
-
-            if ($booking->status->canTransitionTo(BookingStatus::Confirmed)) {
-                $this->bookings->confirm($booking);
-            }
+            $this->bookings->confirm($booking);
 
             return $payment->fresh();
         });
