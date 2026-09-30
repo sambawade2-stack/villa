@@ -29,9 +29,24 @@ class PaymentService
         private readonly BookingService $bookings,
     ) {}
 
-    /** Crée le paiement et lance la passerelle. */
+    /**
+     * Crée le paiement et lance la passerelle.
+     *
+     * Rejoue la session en cours plutôt que d'en ouvrir une seconde : deux
+     * clics sur « payer », ou une requête rejouée, ne doivent pas laisser
+     * deux paiements actifs sur la même réservation — surtout le jour où une
+     * vraie passerelle facturera réellement chaque session ouverte.
+     */
     public function initiate(Booking $booking, string $gatewayName): Payment
     {
+        $active = $booking->payments()
+            ->whereIn('status', [PaymentStatus::Pending, PaymentStatus::Processing])
+            ->first();
+
+        if ($active !== null) {
+            return $active;
+        }
+
         $gateway = $this->gateways->gateway($gatewayName);
 
         return DB::transaction(function () use ($booking, $gateway) {

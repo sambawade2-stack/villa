@@ -135,6 +135,20 @@ it('refuse de constater un règlement sur une réservation déjà annulée', fun
         ->and(AvailabilityBlock::where('booking_id', $booking->id)->exists())->toBeFalse();
 });
 
+it('ne duplique pas la session de paiement sur un double appel', function () {
+    // Double-clic ou requête rejouée : un seul paiement actif par réservation,
+    // pas une seconde session ouverte à chaque appel.
+    $this->actingAs($this->customer)->post(route('bookings.store', $this->property), [
+        'checkin' => $this->from, 'checkout' => $this->to, 'guests' => 2,
+    ]);
+    $booking = Booking::firstOrFail();
+
+    $this->actingAs($this->customer)->post(route('bookings.pay', $booking), ['gateway' => 'manual']);
+    $this->actingAs($this->customer)->post(route('bookings.pay', $booking), ['gateway' => 'manual']);
+
+    expect($booking->payments()->count())->toBe(1);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Ce que le client ne peut pas faire
