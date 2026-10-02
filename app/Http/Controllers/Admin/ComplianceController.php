@@ -91,6 +91,35 @@ class ComplianceController extends Controller
     }
 
     /**
+     * Identité du propriétaire : des champs simples (nom, CNI), jamais un
+     * document — contrairement aux autres pièces. Le numéro de CNI vit sur
+     * le propriétaire, pas sur ce contrôle : un propriétaire avec plusieurs
+     * villas n'a qu'une seule identité à vérifier, pas une par villa.
+     */
+    public function updateIdentity(Request $request, Property $property, ComplianceCheck $check): RedirectResponse
+    {
+        $this->assertBelongsTo($property, $check);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::enum(ComplianceStatus::class)],
+            'cni_number' => ['nullable', 'string', 'max:32'],
+        ]);
+
+        $status = ComplianceStatus::from($data['status']);
+        $cniNumber = $data['cni_number'] ?? $property->owner?->cni_number;
+
+        if ($status === ComplianceStatus::Verified && blank($cniNumber)) {
+            return back()->with('error', __('Renseignez le numéro de CNI avant de déclarer l\'identité vérifiée.'));
+        }
+
+        $property->owner?->update(['cni_number' => $data['cni_number'] ?? null]);
+
+        $this->compliance->markStatus($check, $status, $request->user());
+
+        return back()->with('status', __('Identité mise à jour.'));
+    }
+
+    /**
      * Diffuse un document du dossier.
      *
      * Le fichier vit sur un disque privé : il n'a pas d'URL, et cette route est

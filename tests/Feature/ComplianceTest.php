@@ -327,3 +327,45 @@ it('construit le dossier sans doublon, même appelé plusieurs fois', function (
     expect(ComplianceCheck::where('property_id', $this->property->id)->count())
         ->toBe(count(ComplianceItem::ordered()));
 });
+
+/*
+|--------------------------------------------------------------------------
+| Identité du propriétaire — des champs, jamais un document
+|--------------------------------------------------------------------------
+*/
+
+it('enregistre le numéro de CNI sur le propriétaire, pas sur le contrôle', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::OwnerIdentity)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.identity', [$this->property, $check]),
+        ['status' => ComplianceStatus::Provided->value, 'cni_number' => '1 234 2020 56789']
+    )->assertRedirect();
+
+    expect($this->property->owner->fresh()->cni_number)->toBe('1 234 2020 56789')
+        ->and($check->fresh()->status)->toBe(ComplianceStatus::Provided);
+});
+
+it('refuse de déclarer l\'identité vérifiée sans numéro de CNI', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::OwnerIdentity)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.identity', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value]
+    )->assertSessionHas('error');
+
+    expect($check->fresh()->status)->not->toBe(ComplianceStatus::Verified);
+});
+
+it('n\'exige aucun document pour l\'identité du propriétaire', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::OwnerIdentity)->first();
+    $this->property->owner->update(['cni_number' => '1 234 2020 56789']);
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.identity', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value]
+    )->assertRedirect();
+
+    expect($check->fresh()->status)->toBe(ComplianceStatus::Verified)
+        ->and($check->fresh()->hasDocument())->toBeFalse();
+});

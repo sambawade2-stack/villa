@@ -1,4 +1,5 @@
 @php
+    use App\Enums\ComplianceItem;
     use App\Enums\ComplianceStatus;
     use App\Services\Compliance\ComplianceService;
 
@@ -93,7 +94,13 @@
                         </p>
 
                         <p class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-navy-500">
-                            @if ($check->hasDocument())
+                            @if ($check->item === ComplianceItem::OwnerIdentity)
+                                <span class="text-navy-400">
+                                    {{ $property->owner?->cni_number
+                                        ? __('CNI n° :number', ['number' => $property->owner->cni_number])
+                                        : __('Numéro de CNI non renseigné') }}
+                                </span>
+                            @elseif ($check->hasDocument())
                                 <span class="inline-flex items-center gap-1">
                                     <x-ui.icon name="check" class="size-3.5 text-navy-400" />
                                     {{ $check->document_name }} ({{ $check->humanSize() }})
@@ -141,6 +148,43 @@
 
                 {{-- ------------------------------------------------ Panneau --}}
                 <div x-show="open" x-cloak x-collapse class="border-t border-stone-200 bg-stone-50 p-4">
+                    @if ($check->item === ComplianceItem::OwnerIdentity)
+                        {{-- Des champs simples, jamais un document : le nom et
+                             l'adresse viennent de la fiche propriétaire (lecture
+                             seule, une seule saisie) ; seul le numéro de CNI
+                             s'enregistre ici. --}}
+                        <form method="POST" action="{{ route('admin.villas.compliance.identity', [$property, $check]) }}"
+                              class="flex flex-col gap-3 lg:max-w-md">
+                            @csrf @method('PATCH')
+                            <h3 class="text-sm font-semibold text-navy-900">{{ __('Identité du propriétaire') }}</h3>
+
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <x-ui.input :label="__('Prénom')" :value="$property->owner?->first_name" disabled />
+                                <x-ui.input :label="__('Nom')" :value="$property->owner?->last_name" disabled />
+                            </div>
+
+                            <x-ui.input :label="__('Adresse')" :value="$property->owner?->internal_address" disabled />
+
+                            <x-ui.input name="cni_number" :label="__('Numéro de CNI')"
+                                        :value="old('cni_number', $property->owner?->cni_number)"
+                                        placeholder="1 XXX XXXX XXXXX" />
+
+                            <x-ui.select name="status" :label="__('Statut')">
+                                @foreach (ComplianceStatus::cases() as $case)
+                                    @continue($case === ComplianceStatus::NotApplicable)
+                                    <option value="{{ $case->value }}" @selected($check->status === $case)>
+                                        {{ $case->label() }}
+                                    </option>
+                                @endforeach
+                            </x-ui.select>
+
+                            <p class="text-xs text-navy-400">
+                                {{ __('Prénom, nom et adresse se modifient depuis la fiche du propriétaire, pas ici.') }}
+                            </p>
+
+                            <x-ui.button type="submit" size="sm" class="self-start">{{ __('Enregistrer') }}</x-ui.button>
+                        </form>
+                    @else
                     <div class="grid gap-5 lg:grid-cols-2">
                         @if ($check->item->requiresDocument())
                             <form method="POST" enctype="multipart/form-data"
@@ -225,6 +269,7 @@
                             <x-ui.button type="submit" size="sm" class="self-start">{{ __('Enregistrer') }}</x-ui.button>
                         </form>
                     </div>
+                    @endif
                 </div>
             </section>
         @endforeach

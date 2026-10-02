@@ -274,6 +274,7 @@ Route::middleware(['auth', 'admin'])
             Route::get('/', [ComplianceController::class, 'show'])->name('show');
             Route::post('/{check}/document', [ComplianceController::class, 'upload'])->name('upload');
             Route::patch('/{check}', [ComplianceController::class, 'updateStatus'])->name('status');
+            Route::patch('/{check}/identite', [ComplianceController::class, 'updateIdentity'])->name('identity');
             Route::get('/{check}/document', [ComplianceController::class, 'download'])->name('download');
             Route::delete('/{check}/document', [ComplianceController::class, 'destroyDocument'])->name('document.destroy');
         });

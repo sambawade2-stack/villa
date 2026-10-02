@@ -33,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property string|null $city
  * @property string|null $internal_address
+ * @property string|null $cni_number
  * @property string|null $internal_notes
  * @property OwnerStatus $status
  * @property Carbon|null $created_at
@@ -51,7 +52,7 @@ class PropertyOwner extends Model
 
     protected $fillable = [
         'first_name', 'last_name', 'phone', 'whatsapp',
-        'email', 'city', 'internal_address', 'internal_notes', 'status',
+        'email', 'city', 'internal_address', 'cni_number', 'internal_notes', 'status',
         // 'user_id' est volontairement absent : seul OwnerAccountService::
         // grantAccess() le renseigne, via forceFill — jamais depuis une
         // requête passée telle quelle.
