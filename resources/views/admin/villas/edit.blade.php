@@ -106,8 +106,7 @@
                                   file:mr-3 file:rounded-lg file:border-0 file:bg-navy-800 file:px-4 file:py-2
                                   file:text-sm file:font-medium file:text-white hover:file:bg-navy-700">
                     <p class="text-xs text-navy-400">
-                        {{ __('JPEG, PNG ou WebP. :width px de large minimum, :size Mo maximum par photo. Les données EXIF, qui contiennent souvent les coordonnées GPS du bien, sont supprimées à l\'envoi.', [
-                            'width' => ImageService::MIN_WIDTH,
+                        {{ __('JPEG, PNG ou WebP, :size Mo maximum par photo. Les données EXIF, qui contiennent souvent les coordonnées GPS du bien, sont supprimées à l\'envoi.', [
                             'size' => (int) (ImageService::MAX_SIZE_KB / 1024),
                         ]) }}
                     </p>

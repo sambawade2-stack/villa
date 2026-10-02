@@ -30,9 +30,12 @@ class ImageService
 
     public const ALLOWED_MIMES = ['jpeg', 'jpg', 'png', 'webp'];
 
-    public const MAX_SIZE_KB = 8192;
-
-    public const MIN_WIDTH = 1200;
+    // 50 Mo : large marge au-dessus de ce qu'un téléphone produit même en
+    // pleine résolution — un plafond technique contre un envoi anormal,
+    // pas une contrainte qui gênerait une vraie photo. Aucune largeur
+    // minimale n'est exigée : scaleDown() ci-dessous n'agrandit jamais une
+    // petite photo, elle produit simplement des dérivés plus petits.
+    public const MAX_SIZE_KB = 51200;
 
     /**
      * Enregistre une photo et produit ses dérivés.

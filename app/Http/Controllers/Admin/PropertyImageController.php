@@ -24,12 +24,8 @@ class PropertyImageController extends Controller
                 'file', 'image',
                 'mimes:'.implode(',', ImageService::ALLOWED_MIMES),
                 'max:'.ImageService::MAX_SIZE_KB,
-                'dimensions:min_width='.ImageService::MIN_WIDTH,
             ],
         ], [
-            'photos.*.dimensions' => __('Chaque photo doit faire au moins :width pixels de large.', [
-                'width' => ImageService::MIN_WIDTH,
-            ]),
             // Message dédié plutôt qu'un nom de champ substitué dans le
             // gabarit générique : « la photo » précédé de « du champ » ne se
             // lit pas comme une phrase — un nom de champ suppose un nom

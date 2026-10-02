@@ -290,15 +290,15 @@ it('enregistre une photo et produit ses quatre tailles', function () {
     }
 });
 
-it('refuse une image trop petite', function () {
+it('accepte une image de petite taille, sans largeur minimale imposée', function () {
     Storage::fake('properties');
     $property = Property::factory()->create(['destination_id' => $this->destination->id]);
 
     $this->actingAs($this->admin)->post(route('admin.villas.photos.store', $property), [
         'photos' => [UploadedFile::fake()->image('petite.jpg', 400, 300)],
-    ])->assertSessionHasErrors();
+    ])->assertSessionDoesntHaveErrors();
 
-    expect($property->images()->count())->toBe(0);
+    expect($property->images()->count())->toBe(1);
 });
 
 it('refuse un fichier qui n\'est pas une image', function () {
