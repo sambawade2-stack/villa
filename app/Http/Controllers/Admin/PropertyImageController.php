@@ -35,6 +35,15 @@ class PropertyImageController extends Controller
             // lit pas comme une phrase — un nom de champ suppose un nom
             // commun sans article, pas un groupe nominal complet.
             'photos.*.uploaded' => __('Cette photo n\'a pas pu être envoyée. Réessayez, ou choisissez un fichier plus léger.'),
+            // Sans ce message, l'échec générique affiche « Le champ photos.0
+            // doit être une image » — illisible pour un administrateur. La
+            // cause la plus fréquente : une photo iPhone au format HEIC, que
+            // ni la règle "image" ni "mimes" ne reconnaissent.
+            'photos.*.image' => __('Ce fichier n\'est pas reconnu comme une image. Si la photo vient d\'un iPhone au format HEIC, exportez-la d\'abord en JPEG (dans l\'appli Photos : partager la photo, puis « Options » → « Le plus compatible »).'),
+            'photos.*.mimes' => __('Format non accepté : seuls les fichiers JPEG, PNG ou WebP peuvent être envoyés.'),
+            'photos.*.max' => __('Cette photo dépasse :max Mo. Compressez-la ou choisissez un fichier plus léger.', [
+                'max' => (int) (ImageService::MAX_SIZE_KB / 1024),
+            ]),
         ]);
 
         foreach ($request->file('photos') as $file) {
