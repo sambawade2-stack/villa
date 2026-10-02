@@ -31,11 +31,20 @@ enum ComplianceItem: string
     case PhotosVerified = 'photos_verified';
     case RentalTerms = 'rental_terms';
 
-    /** L'élément s'appuie-t-il sur un document à déposer ? */
+    /**
+     * L'élément s'appuie-t-il sur un document à déposer ?
+     *
+     * RCCM, agrément touristique et autorisation d'exploitation ne sont que
+     * des numéros d'enregistrement : le champ « référence » suffit, pas de
+     * fichier à conserver. Même logique pour les conditions de location,
+     * qui vivent comme texte sur la fiche villa (Property::house_rules).
+     */
     public function requiresDocument(): bool
     {
         return match ($this) {
-            self::AddressVerified, self::PhotosVerified => false,
+            self::AddressVerified, self::PhotosVerified,
+            self::BusinessRegistration, self::TourismLicence,
+            self::OperatingPermit, self::RentalTerms => false,
             default => true,
         };
     }
@@ -57,12 +66,15 @@ enum ComplianceItem: string
         );
     }
 
-    /** Un document qui peut expirer doit porter une date de validité. */
+    /**
+     * Un document qui peut expirer doit porter une date de validité.
+     *
+     * Seule l'identité du propriétaire en dépend encore : les trois numéros
+     * d'enregistrement n'ont plus de document, donc plus de date associée.
+     */
     public function canExpire(): bool
     {
-        return in_array($this, [
-            self::OwnerIdentity, self::TourismLicence, self::OperatingPermit, self::BusinessRegistration,
-        ], strict: true);
+        return $this === self::OwnerIdentity;
     }
 
     public function icon(): string

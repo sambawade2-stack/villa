@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ComplianceItem;
 use App\Enums\ComplianceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ComplianceCheck;
@@ -77,6 +78,25 @@ class ComplianceController extends Controller
         // On ne peut pas déclarer vérifiée une pièce dont le document manque.
         if ($status === ComplianceStatus::Verified && $check->item->requiresDocument() && ! $check->hasDocument()) {
             return back()->with('error', __('Déposez la pièce avant de la déclarer vérifiée.'));
+        }
+
+        // RCCM, agrément touristique et autorisation d'exploitation ne
+        // reposent plus que sur un numéro : il doit être renseigné avant de
+        // les déclarer vérifiées, faute de document à contrôler à la place.
+        $registrationItems = [ComplianceItem::BusinessRegistration, ComplianceItem::TourismLicence, ComplianceItem::OperatingPermit];
+        if ($status === ComplianceStatus::Verified
+            && in_array($check->item, $registrationItems, true)
+            && blank($data['reference'] ?? null)) {
+            return back()->with('error', __('Renseignez le numéro avant de déclarer cette pièce vérifiée.'));
+        }
+
+        // Les conditions de location vivent comme texte sur la fiche villa,
+        // pas comme document ici : sans ce texte, rien ne justifie de
+        // déclarer la pièce vérifiée.
+        if ($status === ComplianceStatus::Verified
+            && $check->item === ComplianceItem::RentalTerms
+            && blank($property->house_rules?->get())) {
+            return back()->with('error', __('Renseignez les conditions de location (onglet Règles de la fiche villa) avant de déclarer cette pièce vérifiée.'));
         }
 
         $check->fill([

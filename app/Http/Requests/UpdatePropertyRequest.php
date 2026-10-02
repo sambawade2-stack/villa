@@ -69,6 +69,8 @@ class UpdatePropertyRequest extends FormRequest
             'pets_allowed' => ['nullable', 'boolean'],
             'parties_allowed' => ['nullable', 'boolean'],
             'smoking_allowed' => ['nullable', 'boolean'],
+            'house_rules_fr' => ['nullable', 'string', 'max:4000'],
+            'house_rules_en' => ['nullable', 'string', 'max:4000'],
 
             // Équipements
             'amenities' => ['nullable', 'array'],

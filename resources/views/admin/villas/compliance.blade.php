@@ -100,6 +100,12 @@
                                         ? __('CNI n° :number', ['number' => $property->owner->cni_number])
                                         : __('Numéro de CNI non renseigné') }}
                                 </span>
+                            @elseif ($check->item === ComplianceItem::RentalTerms)
+                                <span class="text-navy-400">
+                                    {{ filled($property->house_rules?->get())
+                                        ? __('Renseignées (onglet Règles)')
+                                        : __('Non renseignées — onglet Règles de la fiche villa') }}
+                                </span>
                             @elseif ($check->hasDocument())
                                 <span class="inline-flex items-center gap-1">
                                     <x-ui.icon name="check" class="size-3.5 text-navy-400" />

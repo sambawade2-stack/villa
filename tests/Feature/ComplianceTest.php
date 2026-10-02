@@ -369,3 +369,67 @@ it('n\'exige aucun document pour l\'identité du propriétaire', function () {
     expect($check->fresh()->status)->toBe(ComplianceStatus::Verified)
         ->and($check->fresh()->hasDocument())->toBeFalse();
 });
+
+/*
+|--------------------------------------------------------------------------
+| RCCM, agrément touristique, autorisation d'exploitation — un numéro
+|--------------------------------------------------------------------------
+*/
+
+it('n\'exige plus de document pour les numéros d\'enregistrement', function (ComplianceItem $item) {
+    $check = $this->property->complianceChecks()->where('item', $item)->first();
+
+    expect($item->requiresDocument())->toBeFalse();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.status', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value, 'reference' => 'SN-DKR-2024-12345']
+    )->assertRedirect();
+
+    expect($check->fresh()->status)->toBe(ComplianceStatus::Verified);
+})->with([
+    'RCCM' => [ComplianceItem::BusinessRegistration],
+    'agrément touristique' => [ComplianceItem::TourismLicence],
+    'autorisation d\'exploitation' => [ComplianceItem::OperatingPermit],
+]);
+
+it('refuse de déclarer un numéro d\'enregistrement vérifié sans numéro', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::BusinessRegistration)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.status', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value]
+    )->assertSessionHas('error');
+
+    expect($check->fresh()->status)->not->toBe(ComplianceStatus::Verified);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Conditions de location — le texte de la fiche villa, pas un document
+|--------------------------------------------------------------------------
+*/
+
+it('refuse de déclarer les conditions de location vérifiées sans texte', function () {
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::RentalTerms)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.status', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value]
+    )->assertSessionHas('error');
+
+    expect($check->fresh()->status)->not->toBe(ComplianceStatus::Verified);
+});
+
+it('accepte les conditions de location vérifiées dès que la fiche villa est renseignée', function () {
+    $this->property->update(['house_rules' => ['fr' => 'Pas de fête après 22h.']]);
+    $check = $this->property->complianceChecks()->where('item', ComplianceItem::RentalTerms)->first();
+
+    $this->actingAs($this->admin)->patch(
+        route('admin.villas.compliance.status', [$this->property, $check]),
+        ['status' => ComplianceStatus::Verified->value]
+    )->assertRedirect();
+
+    expect($check->fresh()->status)->toBe(ComplianceStatus::Verified)
+        ->and($check->fresh()->hasDocument())->toBeFalse();
+});

@@ -356,6 +356,22 @@
                         </div>
                     </div>
                 </x-admin.panel>
+
+                <x-admin.panel :title="__('Conditions de location')"
+                               :subtitle="__('Visible par le voyageur avant de réserver. C\'est aussi ce que vérifie la pièce « Conditions de location » du dossier de conformité.')"
+                               class="mt-5">
+                    <div class="grid gap-5 p-5 lg:grid-cols-2">
+                        @foreach ([['fr', __('Français')], ['en', __('Anglais')]] as [$locale, $label])
+                            <div class="flex flex-col gap-1.5">
+                                <label for="house_rules_{{ $locale }}" class="field-label">
+                                    {{ __('Règlement intérieur — :lang', ['lang' => $label]) }}
+                                </label>
+                                <textarea id="house_rules_{{ $locale }}" name="house_rules_{{ $locale }}" rows="6" maxlength="4000"
+                                          class="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:border-navy-500">{{ old('house_rules_'.$locale, $property->house_rules?->get($locale)) }}</textarea>
+                            </div>
+                        @endforeach
+                    </div>
+                </x-admin.panel>
             </div>
 
             <div x-show="tab === 'seo'" x-cloak>

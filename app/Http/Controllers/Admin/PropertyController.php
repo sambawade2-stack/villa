@@ -106,10 +106,12 @@ class PropertyController extends Controller
             ...collect($data)->except([
                 'description_fr', 'description_en',
                 'short_description_fr', 'short_description_en',
+                'house_rules_fr', 'house_rules_en',
                 'amenities',
             ])->all(),
             'description' => ['fr' => $data['description_fr'] ?? null, 'en' => $data['description_en'] ?? null],
             'short_description' => ['fr' => $data['short_description_fr'] ?? null, 'en' => $data['short_description_en'] ?? null],
+            'house_rules' => ['fr' => $data['house_rules_fr'] ?? null, 'en' => $data['house_rules_en'] ?? null],
             'pets_allowed' => $request->boolean('pets_allowed'),
             'parties_allowed' => $request->boolean('parties_allowed'),
             'smoking_allowed' => $request->boolean('smoking_allowed'),
