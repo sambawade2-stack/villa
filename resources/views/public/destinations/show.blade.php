@@ -5,13 +5,10 @@
     :description="$destination->meta_description ?: Str::limit((string) $destination->description?->get(), 155)"
     :og-image="$hero?->url('hero')"
 >
+    {{-- Fond uni plutôt que la photo d'une villa : avec parfois une seule
+         villa par destination, sa photo s'étirerait en bannière grand format
+         sans jamais être cadrée pour ça. --}}
     <section class="relative isolate flex min-h-[22rem] items-end overflow-hidden bg-navy-900">
-        @if ($hero)
-            <img src="{{ $hero->url('hero') }}" srcset="{{ $hero->srcset('card', 'hero') }}" sizes="100vw"
-                 alt="" fetchpriority="high" class="absolute inset-0 -z-10 size-full object-cover">
-        @endif
-        <div class="scrim absolute inset-0 -z-10"></div>
-
         <div class="container-page w-full pb-10 pt-24">
             <x-ui.breadcrumb class="!text-stone-200" :items="[
                 ['label' => __('Accueil'), 'url' => route('home')],
