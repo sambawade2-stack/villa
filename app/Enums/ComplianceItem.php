@@ -53,15 +53,19 @@ enum ComplianceItem: string
      * Les éléments « si applicable » peuvent être écartés sans bloquer la
      * vérification.
      *
-     * Le RCCM a rejoint cette liste après le lancement : l'obtenir prend du
-     * temps côté administration sénégalaise, et l'exiger dès le premier jour
-     * aurait bloqué la mise en ligne des toutes premières villas.
+     * Le RCCM, l'agrément touristique et l'autorisation d'exploitation ont
+     * rejoint cette liste après le lancement : les obtenir prend du temps
+     * côté administration sénégalaise, et les exiger dès le premier jour
+     * aurait bloqué la mise en ligne des toutes premières villas. Le
+     * justificatif de propriété a suivi pour la même raison — demande
+     * explicite malgré sa nature juridique : c'est la seule pièce qui prouve
+     * le droit de louer le bien, à régulariser dès que possible.
      */
     public function isConditional(): bool
     {
         return in_array(
             $this,
-            [self::BusinessRegistration, self::TourismLicence, self::OperatingPermit],
+            [self::OwnershipProof, self::BusinessRegistration, self::TourismLicence, self::OperatingPermit],
             strict: true,
         );
     }
