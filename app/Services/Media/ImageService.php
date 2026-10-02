@@ -26,6 +26,12 @@ class ImageService
     /** Nom du dérivé => largeur en pixels. */
     public const CONVERSIONS = ['thumb' => 400, 'card' => 800, 'hero' => 1600, 'full' => 2400];
 
+    // 95 : la perte devient imperceptible à l'œil, même en zoomant, tout en
+    // gardant des pages rapides à charger sur une connexion mobile
+    // sénégalaise — un sans-perte réel (qualité 100) multiplierait le poids
+    // de chaque photo par 10 à 20 pour un gain invisible sur ces tailles-là.
+    public const DISPLAY_QUALITY = 95;
+
     public const DISK = 'properties';
 
     public const ALLOWED_MIMES = ['jpeg', 'jpg', 'png', 'webp'];
@@ -70,13 +76,17 @@ class ImageService
             $variant->scaleDown(width: $targetWidth);
 
             $path = "{$directory}/{$name}-{$label}.webp";
-            $disk->put($path, (string) $variant->toWebp(quality: $label === 'thumb' ? 72 : 82));
+            $disk->put($path, (string) $variant->toWebp(quality: self::DISPLAY_QUALITY));
 
             $conversions[$label] = $path;
         }
 
-        $originalPath = "{$directory}/{$name}-original.".$file->extension();
-        $disk->put($originalPath, (string) $image->encode());
+        // Sans perte réelle (qualité 100 déclenche le mode sans perte de
+        // libwebp) : c'est la copie de référence, jamais servie telle quelle
+        // ni resservie à chaque page — son poids n'a aucun coût pour le
+        // voyageur, seule sa fidélité compte si les tailles changent un jour.
+        $originalPath = "{$directory}/{$name}-original.webp";
+        $disk->put($originalPath, (string) $image->toWebp(quality: 100));
 
         return DB::transaction(function () use ($property, $file, $conversions, $originalPath, $width, $height) {
             $isFirst = $property->images()->count() === 0;
