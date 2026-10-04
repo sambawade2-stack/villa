@@ -74,3 +74,4 @@ En développement, `MAIL_MAILER=log` : les courriels sont écrits dans
   jamais par une vérification PHP seule.
 - **Prix** : toujours recalculés côté serveur. Un montant venu du navigateur n'est pas une source.
 - **Traductions** : champs traduisibles en `jsonb` (`{"fr": …, "en": …}`), textes dans `lang/`.
+# villa
