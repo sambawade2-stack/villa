@@ -1,10 +1,10 @@
 @php
     $services = [
         ['plane', __('Transfert aéroport'), __('Accueil à l\'aéroport Blaise-Diagne et transfert privé jusqu\'à votre villa, de jour comme de nuit. Le chauffeur suit votre vol.'), __('à partir de 35 000 FCFA')],
-        ['car', __('Chauffeur'), __('Un chauffeur à la journée ou pour la durée du séjour, pour vos déplacements sur la Petite Côte et vers Dakar.'), __('à partir de 30 000 FCFA / jour')],
-        ['chef-hat', __('Chef privé'), __('Cuisine sénégalaise ou internationale préparée dans la villa. Marché fait, service assuré, cuisine rendue propre.'), __('à partir de 25 000 FCFA / repas')],
+        ['car', __('Chauffeur'), __('Un chauffeur à la journée ou pour la durée du séjour, pour vos déplacements sur la Petite Côte et vers Dakar.'), __('à partir de 10 000 FCFA / jour')],
+        ['chef-hat', __('Chef privé'), __('Cuisine sénégalaise ou internationale préparée dans la villa. Marché fait, service assuré, cuisine rendue propre.'), __('à partir de 5 000 FCFA / repas')],
         ['sparkles', __('Ménage et blanchisserie'), __('Entretien quotidien ou ponctuel, changement du linge, repassage. Une équipe déjà connue de la maison.'), __('à partir de 15 000 FCFA')],
-        ['key', __('Location de voiture'), __('Véhicule livré à la villa avec assurance et assistance. Berline, 4×4 ou minibus selon le groupe.'), __('à partir de 40 000 FCFA / jour')],
+        ['key', __('Location de voiture'), __('Véhicule livré à la villa avec assurance et assistance. Berline, 4×4 ou minibus selon le groupe.'), __('à partir de 30 000 FCFA / jour')],
         ['compass', __('Excursions'), __('Lagune de la Somone en pirogue, île aux coquillages de Fadiouth, réserve de Bandia, Lac Rose.'), __('sur devis')],
         ['utensils', __('Réservation de tables'), __('Nous réservons pour vous dans les meilleures adresses de Saly, Ngaparou et Somone.'), __('offert')],
         ['users', __('Personnel de maison'), __('Gardien, cuisinière, femme de ménage : du personnel présent pendant tout le séjour.'), __('sur devis')],
