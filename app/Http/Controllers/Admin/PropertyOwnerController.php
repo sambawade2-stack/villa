@@ -12,8 +12,10 @@ use App\Models\PropertyOwner;
 use App\Services\Owner\OwnerAccountService;
 use App\Support\Money;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use RuntimeException;
 
@@ -99,6 +101,31 @@ class PropertyOwnerController extends Controller
             'Accès activé. Un e-mail a été envoyé à :email pour choisir un mot de passe.',
             ['email' => $owner->email]
         ));
+    }
+
+    /**
+     * Suppression définitive : la fiche propriétaire et son éventuel compte
+     * de portail disparaissent réellement de la base, sans retour possible.
+     *
+     * La contrainte `restrictOnDelete()` sur properties.property_owner_id
+     * empêche déjà la suppression si des villas (même archivées) lui sont
+     * encore rattachées — on se contente de transformer cette erreur SQL en
+     * message compréhensible plutôt que de la vérifier nous-mêmes en amont.
+     */
+    public function destroy(PropertyOwner $owner): RedirectResponse
+    {
+        try {
+            DB::transaction(function () use ($owner) {
+                $owner->user?->delete();
+                $owner->forceDelete();
+            });
+        } catch (QueryException) {
+            return back()->with('error', __(
+                'Impossible de supprimer : ce propriétaire a encore des villas enregistrées. Retirez-les ou réattribuez-les d\'abord.'
+            ));
+        }
+
+        return redirect()->route('admin.owners.index')->with('status', __('Propriétaire supprimé définitivement.'));
     }
 
     /** @return array<string, mixed> */

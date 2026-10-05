@@ -2,6 +2,11 @@
     <x-slot:actions>
         <x-ui.button :href="route('admin.owners.edit', $owner)" variant="outline" size="sm">{{ __('Modifier') }}</x-ui.button>
         <x-ui.button :href="route('admin.owners.index')" variant="ghost" size="sm" icon="chevron-left">{{ __('Retour') }}</x-ui.button>
+        <form method="POST" action="{{ route('admin.owners.destroy', $owner) }}"
+              onsubmit="return confirm('{{ __('Supprimer définitivement ce propriétaire ? Impossible si des villas lui sont encore rattachées.') }}')">
+            @csrf @method('DELETE')
+            <x-ui.button type="submit" variant="ghost" size="sm" class="text-red-600 hover:bg-red-50">{{ __('Supprimer') }}</x-ui.button>
+        </form>
     </x-slot:actions>
 
     <div class="grid gap-4 sm:grid-cols-3">

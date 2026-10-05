@@ -247,6 +247,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/proprietaires/{owner}/modifier', [AdminOwnerController::class, 'edit'])->name('owners.edit');
         Route::put('/proprietaires/{owner}', [AdminOwnerController::class, 'update'])->name('owners.update');
         Route::post('/proprietaires/{owner}/acces', [AdminOwnerController::class, 'grantAccess'])->name('owners.grant-access');
+        Route::delete('/proprietaires/{owner}', [AdminOwnerController::class, 'destroy'])->name('owners.destroy');
 
         Route::get('/reservations', [AdminBookingController::class, 'index'])->name('bookings.index');
         Route::get('/reservations/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
