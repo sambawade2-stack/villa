@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Derrière Traefik (reverse proxy Dokploy) : sans ça, Laravel ignore
+        // l'en-tête X-Forwarded-Proto et génère toutes ses URLs en http://
+        // même si le visiteur est en https://, ce que la CSP bloque ensuite.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             SetLocale::class,
         ]);
