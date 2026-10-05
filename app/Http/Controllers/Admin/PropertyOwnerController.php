@@ -116,7 +116,12 @@ class PropertyOwnerController extends Controller
     {
         try {
             DB::transaction(function () use ($owner) {
-                $owner->user?->delete();
+                // forceDelete et non delete : un compte seulement "soft deleted"
+                // garderait son e-mail en base et bloquerait toute réouverture
+                // d'accès future avec cette même adresse (le contrôle anti-
+                // doublon de OwnerAccountService::grantAccess porte volontairement
+                // sur les comptes supprimés aussi, pas seulement les actifs).
+                $owner->user?->forceDelete();
                 $owner->forceDelete();
             });
         } catch (QueryException) {
