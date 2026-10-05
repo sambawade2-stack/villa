@@ -1,0 +1,84 @@
+services:
+  app:
+    build: .
+    image: petite-cote-villas:latest
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - storage_uploads:/var/www/html/storage/app
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # File d'attente : notifications, e-mails, tout ce que ShouldQueue diffère.
+  queue:
+    build: .
+    image: petite-cote-villas:latest
+    restart: unless-stopped
+    command: php artisan horizon
+    volumes:
+      - storage_uploads:/var/www/html/storage/app
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      - postgres
+      - redis
+
+  # Fait tourner routes/console.php (libération des tenues de dates non
+  # payées, clôture des séjours) — l'équivalent d'une entrée cron appelant
+  # `schedule:run` chaque minute.
+  scheduler:
+    build: .
+    image: petite-cote-villas:latest
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - storage_uploads:/var/www/html/storage/app
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-btree-gist.sql:/docker-entrypoint-initdb.d/init-btree-gist.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  # Uniquement storage/app (photos de villa, documents de conformité) : ce
+  # qui doit être visible des trois conteneurs. storage/framework et
+  # storage/logs restent propres à chaque conteneur — les y mêler a déjà
+  # provoqué une course au tout premier démarrage, plusieurs conteneurs
+  # peuplant le même volume vide en même temps.
+  storage_uploads:
