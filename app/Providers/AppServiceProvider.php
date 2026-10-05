@@ -5,7 +5,10 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,5 +32,9 @@ class AppServiceProvider extends ServiceProvider
          * courriel de vérification.
          */
         Event::listen(Registered::class, SendEmailVerificationNotification::class);
+
+        // Pont vers l'API HTTP de Brevo (voir config/mail.php, mailer "brevo") :
+        // Laravel ne connaît pas nativement ce transport Symfony tiers.
+        Mail::extend('brevo', fn (array $config) => (new BrevoTransportFactory)->create(Dsn::fromString($config['dsn'])));
     }
 }

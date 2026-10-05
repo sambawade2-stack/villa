@@ -37,6 +37,14 @@ return [
 
     'mailers' => [
 
+        // API HTTP de Brevo plutôt que son relais SMTP : évite la restriction
+        // d'IP autorisée que Brevo impose sur les clés SMTP (option payante
+        // pour la lever), l'API fonctionnant elle sans cette contrainte.
+        'brevo' => [
+            'transport' => 'brevo',
+            'dsn' => 'brevo+api://'.env('BREVO_API_KEY').'@default',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
