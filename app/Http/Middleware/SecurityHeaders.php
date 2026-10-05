@@ -25,7 +25,12 @@ class SecurityHeaders
         if (! app()->environment('local', 'testing')) {
             $response->headers->set('Content-Security-Policy', implode('; ', [
                 "default-src 'self'",
-                "script-src 'self'",
+                // Alpine.js évalue ses expressions (x-data, x-show, @click…)
+                // via eval, et Livewire injecte un script inline de
+                // configuration au chargement : sans ces deux autorisations,
+                // tout le JS interactif du site (menus, filtres, visionneuse)
+                // échoue silencieusement derrière une CSP stricte.
+                "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
                 "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
                 'font-src https://fonts.gstatic.com',
                 "img-src 'self' data: https:",
