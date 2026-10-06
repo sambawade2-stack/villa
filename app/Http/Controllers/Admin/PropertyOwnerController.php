@@ -9,6 +9,7 @@ use App\Enums\OwnerStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\PropertyOwner;
+use App\Models\User;
 use App\Services\Owner\OwnerAccountService;
 use App\Support\Money;
 use Illuminate\Contracts\View\View;
@@ -132,12 +133,22 @@ class PropertyOwnerController extends Controller
     {
         try {
             DB::transaction(function () use ($owner) {
-                // forceDelete et non delete : un compte seulement "soft deleted"
-                // garderait son e-mail en base et bloquerait toute réouverture
-                // d'accès future avec cette même adresse (le contrôle anti-
-                // doublon de OwnerAccountService::grantAccess porte volontairement
-                // sur les comptes supprimés aussi, pas seulement les actifs).
-                $owner->user?->forceDelete();
+                // Recherche par e-mail plutôt que par la seule relation
+                // user_id : une tentative antérieure d'activation d'accès a pu
+                // créer le compte puis échouer avant de lier owner.user_id,
+                // laissant un compte orphelin qui bloquerait quand même
+                // l'e-mail. forceDelete et non delete : un compte seulement
+                // "soft deleted" garderait son e-mail en base et bloquerait
+                // toute réouverture d'accès future avec cette même adresse (le
+                // contrôle anti-doublon de OwnerAccountService::grantAccess
+                // porte volontairement sur les comptes supprimés aussi, pas
+                // seulement les actifs).
+                if (filled($owner->email)) {
+                    User::withTrashed()->where('email', $owner->email)->get()->each->forceDelete();
+                } else {
+                    $owner->user?->forceDelete();
+                }
+
                 $owner->forceDelete();
             });
         } catch (QueryException) {
