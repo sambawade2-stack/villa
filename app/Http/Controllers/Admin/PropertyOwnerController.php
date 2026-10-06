@@ -61,9 +61,25 @@ class PropertyOwnerController extends Controller
         return view('admin.owners.form', ['owner' => new PropertyOwner]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, OwnerAccountService $accounts): RedirectResponse
     {
         $owner = PropertyOwner::create($this->validated($request));
+
+        // Accès portail ouvert dès la création quand une adresse est connue :
+        // l'administrateur n'a plus à y repenser via un second clic. Sans
+        // adresse, rien à faire ici — "Activer l'accès" restera disponible sur
+        // la fiche une fois l'e-mail renseigné.
+        if (filled($owner->email)) {
+            try {
+                $accounts->grantAccess($owner);
+
+                return redirect()->route('admin.owners.show', $owner)
+                    ->with('status', __('Propriétaire enregistré. Un e-mail a été envoyé à :email pour choisir un mot de passe.', ['email' => $owner->email]));
+            } catch (RuntimeException $e) {
+                return redirect()->route('admin.owners.show', $owner)
+                    ->with('error', __('Propriétaire enregistré, mais l\'accès n\'a pas pu être ouvert automatiquement : :reason', ['reason' => $e->getMessage()]));
+            }
+        }
 
         return redirect()->route('admin.owners.show', $owner)
             ->with('status', __('Propriétaire enregistré.'));
