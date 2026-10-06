@@ -220,6 +220,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/', AdminDashboardController::class)->name('dashboard');
 
         Route::get('/villas', [AdminPropertyController::class, 'index'])->name('villas.index');
+        Route::get('/villas/corbeille', [AdminPropertyController::class, 'trashed'])->name('villas.trashed');
         Route::get('/villas/nouvelle', [AdminPropertyController::class, 'create'])->name('villas.create');
         Route::post('/villas', [AdminPropertyController::class, 'store'])->name('villas.store');
         Route::get('/villas/{property}/modifier', [AdminPropertyController::class, 'edit'])->name('villas.edit');
@@ -227,6 +228,8 @@ Route::middleware(['auth', 'admin'])
         Route::post('/villas/{property}/publier', [AdminPropertyController::class, 'publish'])->name('villas.publish');
         Route::post('/villas/{property}/retirer', [AdminPropertyController::class, 'unpublish'])->name('villas.unpublish');
         Route::delete('/villas/{property}', [AdminPropertyController::class, 'destroy'])->name('villas.destroy');
+        Route::post('/villas/corbeille/{property}/restaurer', [AdminPropertyController::class, 'restore'])->name('villas.restore');
+        Route::delete('/villas/corbeille/{property}', [AdminPropertyController::class, 'forceDestroy'])->name('villas.force-destroy');
 
         Route::post('/villas/{property}/photos', [AdminPropertyImageController::class, 'store'])->name('villas.photos.store');
         Route::post('/villas/{property}/photos/{image}/couverture', [AdminPropertyImageController::class, 'makePrimary'])->name('villas.photos.primary');

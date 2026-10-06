@@ -2,6 +2,9 @@
 
 <x-layouts.admin :title="__('Villas')" :heading="__('Villas')">
     <x-slot:actions>
+        <x-ui.button :href="route('admin.villas.trashed')" variant="ghost" size="sm" icon="trash">
+            {{ __('Corbeille') }}
+        </x-ui.button>
         <x-ui.button :href="route('admin.villas.create')" size="sm" icon="plus">
             {{ __('Ajouter une villa') }}
         </x-ui.button>

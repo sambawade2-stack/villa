@@ -14,7 +14,9 @@ use App\Models\Destination;
 use App\Models\Property;
 use App\Models\PropertyOwner;
 use App\Services\Compliance\ComplianceService;
+use App\Services\Media\ImageService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -169,6 +171,50 @@ class PropertyController extends Controller
 
         return redirect()->route('admin.villas.index')
             ->with('status', __('Villa supprimée. Elle reste récupérable en base.'));
+    }
+
+    public function trashed(): View
+    {
+        return view('admin.villas.trashed', [
+            'properties' => Property::onlyTrashed()
+                ->with(['destination:id,name', 'owner:id,first_name,last_name'])
+                ->orderByDesc('deleted_at')
+                ->paginate(20),
+        ]);
+    }
+
+    public function restore(int $property): RedirectResponse
+    {
+        Property::onlyTrashed()->findOrFail($property)->restore();
+
+        return back()->with('status', __('Villa restaurée. Elle est de retour au catalogue (non publiée).'));
+    }
+
+    /**
+     * Purge définitive, depuis la corbeille uniquement.
+     *
+     * La contrainte `restrictOnDelete()` sur bookings.property_id protège déjà
+     * l'historique de réservation : impossible de supprimer pour de bon une
+     * villa qui en porte, même anciennes. Les photos et pièces du dossier de
+     * conformité sont effacées explicitement via leurs modèles (et non
+     * laissées à la cascade SQL) car ce sont les seules à avoir un fichier sur
+     * disque à nettoyer en même temps que leur ligne.
+     */
+    public function forceDestroy(int $property, ImageService $images): RedirectResponse
+    {
+        $villa = Property::onlyTrashed()->findOrFail($property);
+
+        try {
+            $villa->images->each($images->delete(...));
+            $villa->complianceChecks->each(fn ($check) => $check->delete());
+            $villa->forceDelete();
+        } catch (QueryException) {
+            return back()->with('error', __(
+                'Impossible de supprimer définitivement : cette villa porte des réservations enregistrées.'
+            ));
+        }
+
+        return redirect()->route('admin.villas.trashed')->with('status', __('Villa supprimée définitivement.'));
     }
 
     /**
