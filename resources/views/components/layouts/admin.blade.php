@@ -7,6 +7,7 @@
     $nav = [
         ['label' => __('Tableau de bord'), 'icon' => 'home', 'route' => 'admin.dashboard', 'url' => route('admin.dashboard')],
         ['label' => __('Villas'), 'icon' => 'key', 'route' => 'admin.villas.*', 'url' => route('admin.villas.index')],
+        ['label' => __('Destinations'), 'icon' => 'map-pin', 'route' => 'admin.destinations.*', 'url' => route('admin.destinations.index')],
         ['label' => __('Réservations'), 'icon' => 'calendar', 'route' => 'admin.bookings.*', 'url' => route('admin.bookings.index')],
         ['label' => __('Propriétaires'), 'icon' => 'users', 'route' => 'admin.owners.*', 'url' => route('admin.owners.index')],
         ['label' => __('Clients'), 'icon' => 'users', 'route' => 'admin.customers.*', 'url' => route('admin.customers.index')],

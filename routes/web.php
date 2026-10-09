@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ComplianceController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DestinationController as AdminDestinationController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PricingRuleController;
@@ -218,6 +219,13 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
+
+        Route::get('/destinations', [AdminDestinationController::class, 'index'])->name('destinations.index');
+        Route::get('/destinations/nouvelle', [AdminDestinationController::class, 'create'])->name('destinations.create');
+        Route::post('/destinations', [AdminDestinationController::class, 'store'])->name('destinations.store');
+        Route::get('/destinations/{destination}/modifier', [AdminDestinationController::class, 'edit'])->name('destinations.edit');
+        Route::put('/destinations/{destination}', [AdminDestinationController::class, 'update'])->name('destinations.update');
+        Route::delete('/destinations/{destination}', [AdminDestinationController::class, 'destroy'])->name('destinations.destroy');
 
         Route::get('/villas', [AdminPropertyController::class, 'index'])->name('villas.index');
         Route::get('/villas/corbeille', [AdminPropertyController::class, 'trashed'])->name('villas.trashed');
