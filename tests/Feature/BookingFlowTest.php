@@ -78,10 +78,16 @@ it('mène le client de la fiche villa à la confirmation', function () {
         ->and($booking->payment->status)->toBe(PaymentStatus::Succeeded)
         ->and($booking->confirmed_at)->not->toBeNull()
         ->and($booking->hold_expires_at)->toBeNull()
-        // La commission n'existe qu'après règlement constaté.
-        ->and($booking->commission)->not->toBeNull()
+        // La commission n'existe qu'après règlement constaté. Le propriétaire
+        // ne gagne que sur les nuits : les frais de ménage/service reviennent
+        // entièrement à la plateforme, en plus de sa commission sur les nuits.
+        ->and($booking->commission)->not->toBeNull();
+
+    $payout = $booking->nightly_subtotal->amount - (int) round($booking->nightly_subtotal->amount * 0.10);
+
+    expect($booking->commission->owner_payout_amount->amount)->toBe($payout)
         ->and($booking->commission->commission_amount->amount)
-        ->toBe((int) round($booking->total_amount->amount * 0.10));
+        ->toBe($booking->total_amount->amount - $payout);
 });
 
 it('trace quel administrateur a constaté le règlement', function () {

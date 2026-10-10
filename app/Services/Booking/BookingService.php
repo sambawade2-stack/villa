@@ -121,8 +121,18 @@ class BookingService
             $this->assertTransition($booking, BookingStatus::Confirmed);
 
             $rate = (string) Setting::get('platform.commission_rate', 10);
-            $commission = $booking->total_amount->percentage($rate);
-            $payout = $booking->total_amount->minus($commission);
+
+            // Le propriétaire ne gagne que sur les nuits : le taux porte sur
+            // nightly_subtotal, jamais sur les frais de ménage/service, qui
+            // reviennent entièrement à la plateforme. commission_amount se
+            // déduit ensuite du total payé plutôt que recalculé en parallèle,
+            // pour garantir que payout + commission == total_amount au
+            // centime, remise éventuelle comprise (elle réduit la part
+            // plateforme, pas celle du propriétaire, qui ne décide jamais
+            // d'un code promo).
+            $ownerCommission = $booking->nightly_subtotal->percentage($rate);
+            $payout = $booking->nightly_subtotal->minus($ownerCommission);
+            $commission = $booking->total_amount->minus($payout);
 
             // 'status', 'commission_rate', 'commission_amount' et
             // 'owner_payout_amount' ne sont pas mass-assignables : forceFill
@@ -141,6 +151,10 @@ class BookingService
                 [
                     'property_owner_id' => $booking->property->property_owner_id,
                     'rate' => $rate,
+                    // Contrainte DB commissions_amounts_coherent : base_amount
+                    // doit rester la somme (commission + reversé), donc le
+                    // total payé — même si le taux, lui, ne s'applique qu'aux
+                    // nuits (voir plus haut).
                     'base_amount' => $booking->total_amount,
                     'commission_amount' => $commission,
                     'owner_payout_amount' => $payout,

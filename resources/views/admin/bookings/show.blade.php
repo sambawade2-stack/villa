@@ -44,11 +44,13 @@
                     </div>
                     @if ($booking->commission)
                         <div class="flex justify-between gap-4 px-5 py-3">
-                            <dt class="text-navy-500">{{ __('Commission plateforme (:rate %)', ['rate' => $booking->commission->rate]) }}</dt>
+                            <dt class="text-navy-500">
+                                {{ __('Revenu plateforme (:rate % sur les nuits + frais ménage/service)', ['rate' => $booking->commission->rate]) }}
+                            </dt>
                             <dd class="text-navy-900 tabular">{{ $booking->commission->commission_amount->format() }}</dd>
                         </div>
                         <div class="flex justify-between gap-4 px-5 py-3">
-                            <dt class="text-navy-500">{{ __('À reverser au propriétaire') }}</dt>
+                            <dt class="text-navy-500">{{ __('À reverser au propriétaire (sur les nuits uniquement)') }}</dt>
                             <dd class="text-navy-900 tabular">{{ $booking->commission->owner_payout_amount->format() }}</dd>
                         </div>
                     @endif

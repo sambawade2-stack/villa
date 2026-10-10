@@ -171,13 +171,17 @@ it('confirme et fige la commission', function () {
 
     $confirmed = $this->service->confirm($booking);
 
-    $total = $confirmed->total_amount->amount;
-    $commission = (int) round($total * 0.10);
+    // Le propriétaire ne gagne que sur les nuits : les frais de ménage et de
+    // service reviennent entièrement à la plateforme, en plus de sa
+    // commission sur les nuits.
+    $nightly = $confirmed->nightly_subtotal->amount;
+    $payout = $nightly - (int) round($nightly * 0.10);
+    $commission = $confirmed->total_amount->amount - $payout;
 
     expect($confirmed->status)->toBe(BookingStatus::Confirmed)
         ->and($confirmed->hold_expires_at)->toBeNull()
+        ->and($confirmed->owner_payout_amount->amount)->toBe($payout)
         ->and($confirmed->commission_amount->amount)->toBe($commission)
-        ->and($confirmed->owner_payout_amount->amount)->toBe($total - $commission)
         ->and($confirmed->commission->status)->toBe(CommissionStatus::Pending);
 });
 
