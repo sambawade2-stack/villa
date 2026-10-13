@@ -130,8 +130,8 @@ class BookingService
             // centime, remise éventuelle comprise (elle réduit la part
             // plateforme, pas celle du propriétaire, qui ne décide jamais
             // d'un code promo).
-            $ownerCommission = $booking->nightly_subtotal->percentage($rate);
-            $payout = $booking->nightly_subtotal->minus($ownerCommission);
+            $rateCommission = $booking->nightly_subtotal->percentage($rate);
+            $payout = $booking->nightly_subtotal->minus($rateCommission);
             $commission = $booking->total_amount->minus($payout);
 
             // 'status', 'commission_rate', 'commission_amount' et
@@ -156,6 +156,10 @@ class BookingService
                     // total payé — même si le taux, lui, ne s'applique qu'aux
                     // nuits (voir plus haut).
                     'base_amount' => $booking->total_amount,
+                    // Isolée de commission_amount (qui inclut aussi les frais
+                    // de ménage/service) : sert au suivi du revenu plateforme
+                    // sur la seule commission, affiché au tableau de bord.
+                    'rate_commission_amount' => $rateCommission,
                     'commission_amount' => $commission,
                     'owner_payout_amount' => $payout,
                     'status' => CommissionStatus::Pending,

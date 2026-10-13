@@ -34,6 +34,10 @@ class DashboardController extends Controller
                 'bookings' => Booking::query()->count(),
                 'revenue' => Money::from($revenue),
                 'commissions' => Money::from((int) Commission::query()->sum('commission_amount')),
+                // Part de commission_amount due au seul taux (hors ménage et
+                // service, qui reviennent entièrement à la plateforme mais ne
+                // sont pas "ma commission" au sens où l'entend l'exploitant).
+                'rateCommissions' => Money::from((int) Commission::query()->sum('rate_commission_amount')),
             ],
             // Pièces refusées ou périmées : ce qui appelle une action immédiate.
             'complianceAlerts' => ComplianceCheck::query()

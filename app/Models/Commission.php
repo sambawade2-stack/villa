@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property int $property_owner_id
  * @property string $rate
  * @property Money $base_amount
+ * @property Money $rate_commission_amount
  * @property Money $commission_amount
  * @property Money $owner_payout_amount
  * @property CommissionStatus $status
@@ -42,7 +43,7 @@ class Commission extends Model
 
     protected $fillable = [
         'booking_id', 'property_owner_id', 'rate',
-        'base_amount', 'commission_amount', 'owner_payout_amount',
+        'base_amount', 'rate_commission_amount', 'commission_amount', 'owner_payout_amount',
         'status', 'settled_at', 'settlement_note',
     ];
 
@@ -53,6 +54,7 @@ class Commission extends Model
             'status' => CommissionStatus::class,
             'settled_at' => 'datetime',
             'base_amount' => MoneyCast::class,
+            'rate_commission_amount' => MoneyCast::class,
             'commission_amount' => MoneyCast::class,
             'owner_payout_amount' => MoneyCast::class,
         ];

@@ -4,7 +4,7 @@
         <x-ui.button :href="route('admin.villas.index')" variant="outline" size="sm">{{ __('Gérer les villas') }}</x-ui.button>
     </x-slot:actions>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         @foreach ([
             ['key', __('Villas'), $stats['properties'],
                 trans_choice(':count publiée|:count publiées', $stats['published'], ['count' => $stats['published']])
@@ -12,6 +12,8 @@
             ['calendar', __('Réservations'), $stats['bookings'], __('toutes périodes')],
             ['users', __('Clients'), $stats['customers'], trans_choice(':count propriétaire|:count propriétaires', $stats['owners'], ['count' => $stats['owners']])],
             ['home', __('Chiffre d\'affaires'), $stats['revenue']->format(withCurrency: false), __(':amount de commissions', ['amount' => $stats['commissions']->format()])],
+            ['zap', __('Ma commission'), $stats['rateCommissions']->format(withCurrency: false),
+                __('Sur les nuits uniquement, hors ménage et service')],
         ] as [$icon, $label, $value, $hint])
             <article class="rounded-card border border-stone-200 bg-white p-5">
                 <div class="flex items-center gap-3">
