@@ -312,7 +312,7 @@
         </div>
 
         {{-- ------------------------------------------------- Carte réservation --}}
-        <aside class="lg:sticky lg:top-24 lg:self-start">
+        <aside id="reservation" class="lg:sticky lg:top-24 lg:self-start">
             <div class="rounded-card border border-stone-200 bg-white p-5 shadow-card">
                 <p class="text-navy-900">
                     {{--
@@ -350,8 +350,11 @@
                     </p>
                 @endif
 
-                {{-- Choix des dates : recharge la fiche avec le devis correspondant. --}}
-                <form method="GET" action="{{ route('villas.show', [$property->destination, $property]) }}" class="mt-4 flex flex-col gap-2">
+                {{-- Choix des dates : recharge la fiche avec le devis correspondant.
+                     #reservation dans l'action : sans lui, le rechargement
+                     ramène le visiteur en haut de la page au lieu de le
+                     laisser sur cette carte, qu'il vient pourtant de remplir. --}}
+                <form method="GET" action="{{ route('villas.show', [$property->destination, $property]) }}#reservation" class="mt-4 flex flex-col gap-2">
                     <div class="grid grid-cols-2 gap-2">
                         <x-ui.input type="date" name="checkin" :label="__('Arrivée')"
                                     :min="now()->toDateString()"
