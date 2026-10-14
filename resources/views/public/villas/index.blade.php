@@ -53,7 +53,10 @@
                     <x-ui.icon name="chevron-down" class="size-4" ::class="open && 'rotate-180'" />
                 </button>
 
-                <form method="GET" action="{{ route('villas.index') }}"
+                {{-- #resultats dans l'action : sans lui, appliquer un filtre
+                     ramène tout en haut de page plutôt que vers les résultats
+                     qu'il vient de modifier. --}}
+                <form method="GET" action="{{ route('villas.index') }}#resultats"
                       x-show="open || window.innerWidth >= 1024" x-cloak
                       class="mt-3 flex flex-col gap-6 rounded-2xl border border-stone-200 bg-white p-5 lg:mt-0 lg:!block lg:space-y-6">
 
@@ -126,13 +129,15 @@
             </aside>
 
             {{-- ------------------------------------------------------ Résultats --}}
-            <div>
+            <div id="resultats">
                 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <p class="text-sm text-navy-500 tabular">
                         {{ __('Page :current sur :last', ['current' => $properties->currentPage(), 'last' => max(1, $properties->lastPage())]) }}
                     </p>
 
-                    <form method="GET" action="{{ route('villas.index') }}" class="flex items-center gap-2">
+                    {{-- Même raison qu'au formulaire de filtres : rester sur
+                         les résultats plutôt que remonter en haut de page. --}}
+                    <form method="GET" action="{{ route('villas.index') }}#resultats" class="flex items-center gap-2">
                         @foreach ($filters as $key => $value)
                             @continue($key === 'sort' || $value === null || $value === '')
                             @if (is_array($value))
@@ -170,7 +175,9 @@
                     </div>
 
                     <div class="mt-10">
-                        {{ $properties->onEachSide(1)->links() }}
+                        {{-- fragment('resultats') : même raison que les formulaires
+                             de filtres et de tri ci-dessus. --}}
+                        {{ $properties->onEachSide(1)->fragment('resultats')->links() }}
                     </div>
                 @endif
             </div>

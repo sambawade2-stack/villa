@@ -29,7 +29,7 @@
             </div>
         @endif
 
-        <div class="mt-10">
+        <div id="villas" class="mt-10">
             @if ($properties->isEmpty())
                 <x-ui.empty-state icon="home" :title="__('Aucune villa publiée à :name pour le moment', ['name' => $destination->name])">
                     {{ __('Notre sélection s\'étoffe régulièrement.') }}
@@ -45,7 +45,9 @@
                     @endforeach
                 </div>
 
-                <div class="mt-12">{{ $properties->onEachSide(1)->links() }}</div>
+                {{-- fragment('villas') : sans ça, changer de page ramène tout
+                     en haut plutôt que vers les villas qu'on vient de parcourir. --}}
+                <div class="mt-12">{{ $properties->onEachSide(1)->fragment('villas')->links() }}</div>
             @endif
         </div>
     </div>
